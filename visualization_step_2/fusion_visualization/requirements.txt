@@ -1,0 +1,40 @@
+# Core dependencies - consistent with step_1_part_2
+torch
+torchvision
+numpy>=1.21.0
+pandas>=1.3.0
+matplotlib>=3.4.0
+opencv-python>=4.5.0
+Pillow>=8.3.0
+scipy>=1.7.0
+scikit-image>=0.18.0
+
+# Deep learning and model utilities
+timm>=0.6.0
+dask[array]>=2021.6.0
+dask-image>=0.6.0
+
+# XAI libraries for consistent visualization
+pytorch-grad-cam
+grad-cam
+shap
+lime
+
+# Graph neural network dependencies
+torch-geometric
+torch-cluster
+torch-scatter
+torch-sparse
+
+# Configuration and utilities
+PyYAML>=5.4.0
+tqdm>=4.62.0
+pathlib
+
+# Additional dependencies for this codebase
+networkx
+seaborn
+h5py
+
+# Excel file handling
+openpyxl>=3.0.0 

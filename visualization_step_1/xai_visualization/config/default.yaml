@@ -1,0 +1,28 @@
+# Default configuration for XAI Visualization Tool
+
+# Model parameters
+feat_dim: 512  # Feature dimension (512 for ResNet18, 2048 for ResNet50)
+proj_dim: 128  # Projection dimension
+num_classes: 2  # Number of output classes
+
+# Image processing parameters
+patch_size: 224  # Size of patches to extract from WSI
+stride: 224  # Stride between patches (224 for non-overlapping)
+target_class: 1  # Target class index for visualization (1 for cancer, 0 for normal)
+
+# Color normalization
+use_color_normalization: false  # Whether to apply Macenko color normalization
+
+# SHAP-specific parameters
+background_samples: 10  # Number of background samples for SHAP explainer
+
+# LIME-specific parameters
+lime_num_samples: 100  # Number of samples for LIME explanation
+lime_batch_size: 10  # Batch size for LIME prediction
+lime_num_features: 10  # Number of features to show in LIME explanation
+
+# Visualization parameters
+alpha: 0.5  # Transparency for heatmap overlay
+colormap: 'jet'  # Colormap for heatmap visualization
+figure_size: [20, 20]  # Figure size for saved visualizations
+dpi: 300  # DPI for saved images 

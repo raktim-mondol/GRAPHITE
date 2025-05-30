@@ -1,0 +1,47 @@
+# GRAPHITE Configuration File
+# This file contains default parameters for training and inference
+
+# Data processing parameters
+data:
+  patch_size: 224          # Size of extracted patches
+  levels: 3                # Number of hierarchical levels
+  overlap_ratio: 0.5       # Overlap between patches
+  min_tissue_percentage: 0.5  # Minimum tissue content for valid patches
+  
+  # Level-specific thresholds for tissue detection
+  level_thresholds:
+    0: 0.6    # Level 0 (full resolution)
+    1: 0.7    # Level 1 (1/2 resolution) 
+    2: 0.9    # Level 2 (1/4 resolution)
+
+# Model architecture parameters
+model_params:
+  input_dim: 128           # Input feature dimension
+  hidden_dim: 128          # Hidden dimension for GAT layers
+  num_heads: 4             # Number of attention heads
+  num_gat_layers: 3        # Number of GAT layers
+  num_levels: 3            # Number of hierarchical levels
+  dropout: 0.1             # Dropout rate
+
+# Training parameters
+training_params:
+  batch_size: 4            # Batch size for training
+  learning_rate: 0.001     # Initial learning rate
+  weight_decay: 1e-5       # Weight decay for optimizer
+  num_epochs: 100          # Maximum number of training epochs
+  patience: 10             # Early stopping patience
+  lr_patience: 5           # Learning rate scheduler patience
+
+# Loss function parameters
+loss_params:
+  temperature: 0.07        # Temperature for InfoMax loss
+  alpha: 0.5               # Weight for InfoMax loss
+  beta: 0.5                # Weight for Scale-wise loss
+  tau: 0.1                 # Temperature for Scale-wise loss
+
+# System parameters
+system:
+  num_workers: 4           # Number of data loading workers
+  pin_memory: true         # Use pinned memory for GPU
+  device: "auto"           # Device: auto, cuda, or cpu
+  checkpoint_interval: 5   # Save checkpoint every N epochs

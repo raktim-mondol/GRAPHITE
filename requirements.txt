@@ -1,0 +1,70 @@
+# GRAPHITE: Multi-Step Histopathology Analysis Pipeline
+# Consolidated Requirements File
+# This file includes dependencies for all modules in the pipeline
+
+# Core PyTorch and Deep Learning
+torch>=1.9.0
+torchvision>=0.10.0
+torch-geometric>=2.0.0
+torch-scatter>=2.0.9
+torch-sparse>=0.6.12
+torch-cluster>=1.5.9
+torch-spline-conv>=1.2.1
+
+# Scientific Computing
+numpy>=1.20.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Machine Learning
+scikit-learn>=1.0.0
+timm>=0.4.12
+
+# Visualization and Plotting
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Image Processing
+opencv-python>=4.5.0
+Pillow>=8.0.0
+scikit-image>=0.18.0
+
+# Explainable AI
+pytorch-grad-cam>=1.4.0
+captum>=0.5.0
+lime>=0.2.0
+
+# Data Processing
+tqdm>=4.60.0
+PyYAML>=5.4.0
+openpyxl>=3.0.0
+
+# Utilities
+argparse
+logging
+pathlib
+json
+pickle
+
+# Optional: Development and Debugging
+pytest>=6.0.0
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Optional: Experiment Tracking
+tensorboard>=2.7.0
+# wandb>=0.12.0  # Uncomment if using Weights & Biases
+
+# Optional: Color Normalization
+spams  # For Macenko color normalization (may require manual installation)
+
+# Installation Notes:
+# 1. PyTorch Geometric can be tricky to install. Try:
+#    conda install pyg -c pyg
+#    or follow: https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
+#
+# 2. SPAMS (for color normalization) may require:
+#    conda install -c conda-forge python-spams
+#
+# 3. For CUDA support, ensure PyTorch is installed with CUDA:
+#    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 
