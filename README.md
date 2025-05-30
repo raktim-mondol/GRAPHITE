@@ -1,11 +1,17 @@
-# GRAPHITE: Graph-based Histopathology Image Analysis Toolkit for Explainable Cancer Diagnosis
+# GRAPHITE: Graph-Based Interpretable Tissue Examination for Enhanced Explainability in Breast Cancer Histopathology
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.12+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](./docs)
 
-A comprehensive deep learning pipeline for histopathology image analysis that combines **Multiple Instance Learning (MIL)**, **hierarchical Graph Attention Networks (HierGAT)**, and **explainable AI (XAI)** techniques for cancer diagnosis and visualization.
+## 📄 About
+
+GRAPHITE is a state-of-the-art deep learning framework specifically designed for breast cancer histopathology analysis. Our approach combines graph-based representations with interpretable AI techniques to provide clinically relevant insights for pathologists. The framework leverages hierarchical graph attention networks and multiple instance learning to analyze tissue microenvironments while maintaining full explainability of predictions through advanced visualization techniques.
+
+**Key Innovation**: GRAPHITE introduces a novel multi-scale graph representation that captures both local cellular interactions and global tissue architecture, enabling more accurate and interpretable breast cancer diagnosis from histopathology images.
+
+A comprehensive deep learning pipeline for histopathology image analysis that combines **Multiple Instance Learning (MIL)**, **hierarchical Graph Attention Networks (HierGAT)**, and **explainable AI (XAI)** techniques for enhanced breast cancer diagnosis and visualization.
 
 ## 🌟 Overview
 
@@ -462,12 +468,14 @@ For questions and support:
 If you use GRAPHITE in your research, please cite:
 
 ```bibtex
-@article{graphite2024,
-    title={GRAPHITE: Graph-based Histopathology Image Analysis for Explainable Cancer Diagnosis},
-    author={[Your Name] and [Co-authors]},
-    journal={[Journal Name]},
-    year={2024},
-    doi={[DOI]}
+@misc{mondol2025graphitegraphbasedinterpretabletissue,
+      title={GRAPHITE: Graph-Based Interpretable Tissue Examination for Enhanced Explainability in Breast Cancer Histopathology}, 
+      author={Raktim Kumar Mondol and Ewan K. A. Millar and Peter H. Graham and Lois Browne and Arcot Sowmya and Erik Meijering},
+      year={2025},
+      eprint={2501.04206},
+      archivePrefix={arXiv},
+      primaryClass={eess.IV},
+      url={https://arxiv.org/abs/2501.04206}, 
 }
 ```
 
