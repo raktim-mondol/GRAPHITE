@@ -11,7 +11,7 @@ GRAPHITE is a state-of-the-art deep learning framework specifically designed for
 
 **🔗 Explore GRAPHITE:**
 - **📖 [Understand Our Code](https://deepwiki.com/raktim-mondol/GRAPHITE)** - Interactive code exploration and documentation
-- **📊 [Interactive Dashboard](https://www.perplexity.ai/search/create-a-interactive-dashboard-kugFj.FzTJaD2ItbbegVZA)** - Explore our work through an interactive dashboard
+- **📊 [Interactive Dashboard](https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/ad21462b3017a3a2ddb4c0b9d796dc41/b4bf40ab-a0e0-446e-858f-1eb8f5aa4c56/index.html)** - Explore our work through an interactive dashboard
 
 **Key Innovation**: GRAPHITE introduces a novel multi-scale graph representation that captures both local cellular interactions and global tissue architecture, enabling more accurate and interpretable breast cancer diagnosis from histopathology images.
 
