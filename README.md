@@ -89,10 +89,12 @@ GRAPHITE provides an end-to-end solution for analyzing histopathology images thr
 - **CPU**: Multi-core processor (8+ cores recommended)
 
 ### **Software Requirements**
-- **OS**: Linux (Ubuntu 18.04+), macOS (10.15+), or Windows 10/11 with WSL2
+- **OS**: Linux (Ubuntu 18.04+), macOS (10.15+), or Windows with WSL2/Docker
 - **Python**: 3.8, 3.9, or 3.10
 - **CUDA**: 11.3+ (for GPU acceleration)
 - **Docker**: 20.0+ (for containerized deployment)
+
+**Note**: All instructions in this guide use Linux/bash syntax. For Windows users, we recommend using WSL2, Git Bash, or Docker for the best experience.
 
 ## 🚀 Installation
 
@@ -100,17 +102,20 @@ GRAPHITE provides an end-to-end solution for analyzing histopathology images thr
 ```bash
 # Clone the repository
 git clone https://github.com/raktim-mondol/GRAPHITE.git
-cd graphite-histopathology
+cd GRAPHITE
 
 # Run automated setup
 ./quickstart.sh
+
+# Alternative: Manual setup
+python training_step_1/run_training.py --install_deps
 ```
 
 ### Option 2: Manual Installation
 ```bash
 # Create virtual environment
 python -m venv graphite_env
-source graphite_env/bin/activate  # On Windows: graphite_env\Scripts\activate
+source graphite_env/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -153,18 +158,18 @@ dataset/
 # Automated pipeline execution
 ./quickstart.sh
 
-# Or run individual steps:
+# Or run individual steps manually
 # Step 1: MIL Classification
-python training_step_1/mil_classification/train.py --num_epochs 50
+python training_step_1/run_training.py --epochs 50
 
 # Step 2: Self-Supervised Learning  
 python training_step_2/self_supervised_training/train.py --epochs 100
 
 # Step 3: XAI Visualization
-python visualization_step_1/xai_visualization/generate_visualizations.py
+python visualization_step_1/xai_visualization/main.py
 
 # Step 4: Attention Fusion
-python visualization_step_2/fusion_visualization/fusion_analysis.py
+python visualization_step_2/fusion_visualization/main_final_fusion.py
 ```
 
 ### 3. **View Results**
@@ -214,29 +219,47 @@ For detailed specifications, see [DATA_STRUCTURE.md](DATA_STRUCTURE.md).
 Train the Multiple Instance Learning model for patch-level classification:
 
 ```bash
-cd training_step_1/mil_classification
+cd training_step_1
 
-# Basic training
-python train.py \
+# Basic training (recommended - uses wrapper script)
+python run_training.py \
     --batch_size 8 \
-    --num_epochs 100 \
+    --epochs 100 \
     --learning_rate 0.001 \
     --max_patches 100
 
 # Advanced training with color normalization
-python train.py \
+python run_training.py \
     --batch_size 16 \
-    --num_epochs 150 \
+    --epochs 150 \
+    --color_norm \
+    --balanced_sampler \
+    --patience 15
+
+# Quick test mode (2 epochs, fast)
+python run_training.py --quick_test
+
+# Direct training (advanced users)
+cd mil_classification
+python train.py \
+    --batch_size 8 \
+    --num_epochs 100 \
+    --learning_rate 0.001 \
+    --max_patches 100 \
     --use_color_normalization \
     --use_balanced_sampler \
     --early_stopping_patience 15
 ```
 
-**Key Parameters:**
+**Key Parameters (wrapper script):**
 - `--max_patches`: Maximum patches per patient (default: 100)
-- `--use_color_normalization`: Apply Macenko color normalization
-- `--use_balanced_sampler`: Balance classes in batches
-- `--early_stopping_patience`: Early stopping patience (default: 10)
+- `--epochs`: Number of training epochs (default: 100)
+- `--color_norm`: Apply Macenko color normalization
+- `--balanced_sampler`: Balance classes in batches
+- `--patience`: Early stopping patience (default: 10)
+- `--quick_test`: Run quick test (2 epochs, 50 patches)
+- `--data_dir`: Root directory containing patient folders
+- `--metrics`: Metric to monitor for early stopping (default: 'auc')
 
 ### Training Step 2: Self-Supervised Learning
 
@@ -249,57 +272,189 @@ cd training_step_2/self_supervised_training
 python train.py \
     --data_dir "../../dataset/training_dataset_step_2/core_image" \
     --epochs 100 \
-    --batch_size 16 \
-    --learning_rate 0.0001
+    --batch_size 4 \
+    --lr 0.001
 
 # Advanced training with custom parameters
 python train.py \
-    --epochs 200 \
-    --batch_size 32 \
+    --data_dir "../../dataset/training_dataset_step_2/core_image" \
+    --epochs 150 \
+    --batch_size 8 \
+    --lr 0.0005 \
+    --weight_decay 1e-4 \
     --hidden_dim 256 \
     --num_heads 8 \
-    --dropout 0.1
+    --dropout 0.1 \
+    --temperature 0.05 \
+    --alpha 0.6 \
+    --output_dir "./output/my_experiment"
+
+# Training with specific configuration file
+python train.py \
+    --config config/config.yaml \
+    --data_dir "../../dataset/training_dataset_step_2/core_image"
 ```
 
 **Key Parameters:**
-- `--hidden_dim`: Hidden layer dimension (default: 128)
+- `--data_dir`: Path to directory containing training images (required)
+- `--epochs`: Number of training epochs (default: 100)
+- `--batch_size`: Batch size for training (default: 4)
+- `--lr`: Learning rate (default: 0.001)
+- `--weight_decay`: Weight decay for optimizer (default: 1e-5)
+- `--hidden_dim`: Hidden dimension for GAT layers (default: 128)
 - `--num_heads`: Number of attention heads (default: 4)
+- `--num_gat_layers`: Number of GAT layers (default: 3)
 - `--dropout`: Dropout rate (default: 0.1)
-- `--patience`: Early stopping patience (default: 20)
+- `--input_dim`: Input feature dimension (default: 128)
+- `--temperature`: Temperature for InfoMax loss (default: 0.07)
+- `--alpha`: Weight for InfoMax loss (default: 0.5)
+- `--beta`: Weight for Scale-wise loss (default: 0.5)
+- `--tau`: Temperature for Scale-wise loss (default: 0.1)
+- `--patience`: Early stopping patience (default: 10)
+- `--num_workers`: Number of data loading workers (default: 4)
+- `--config`: Path to configuration file (default: 'config/config.yaml')
+- `--output_dir`: Directory to save models and plots (default: 'output/hiergat_ssl')
+- `--resume`: Path to checkpoint to resume training from
+- `--seed`: Random seed for reproducibility (default: 78)
+- `--device`: Device to use for training ('auto', 'cuda', 'cpu') (default: 'auto')
+- `--verbose`: Enable verbose logging
 
 ### Visualization Step 1: XAI Analysis
 
-Generate explainable AI visualizations:
+Generate explainable AI visualizations using multiple methods:
 
 ```bash
 cd visualization_step_1/xai_visualization
 
-# Generate comprehensive visualizations
-python generate_visualizations.py \
-    --model_path "../../training_step_1/mil_classification/output/best_model.pth" \
-    --data_dir "../../dataset/visualization_dataset" \
-    --output_dir "./output"
+# Basic usage example (replace 'gradcam' with any method from the list below)
+python main.py \
+    --method gradcam \
+    --wsi_folder "../../dataset/visualization_dataset/core_image" \
+    --mask_folder "../../dataset/visualization_dataset/mask" \
+    --output_folder "./output" \
+    --model_path "../../training_step_1/mil_classification/output/best_model.pth"
 
-# Custom visualization settings
-python generate_visualizations.py \
-    --visualization_types "attention,gradcam,lime" \
-    --save_individual_patches \
-    --overlay_opacity 0.4
+# Advanced usage with custom parameters
+python main.py \
+    --method shap_deep \
+    --wsi_folder "../../dataset/visualization_dataset/core_image" \
+    --mask_folder "../../dataset/visualization_dataset/mask" \
+    --output_folder "./output" \
+    --patch_size 224 \
+    --stride 224 \
+    --target_class 1 \
+    --config "./config/default.yaml" \
+    --verbose
 ```
+
+**Available Visualization Methods:**
+
+*CAM-based Methods:*
+- `gradcam`: Gradient-weighted Class Activation Mapping
+- `hirescam`: High Resolution Class Activation Mapping
+- `scorecam`: Score-weighted Class Activation Mapping
+- `gradcampp`: GradCAM++ (improved version)
+- `ablationcam`: Ablation-based CAM
+- `xgradcam`: Extended GradCAM
+- `eigencam`: Eigen-based CAM
+- `fullgrad`: Full Gradient decomposition
+
+*Model-agnostic Methods:*
+- `shap_deep`: SHAP with Deep Explainer
+- `shap_gradient`: SHAP with Gradient Explainer
+- `lime`: LIME (Local Interpretable Model-agnostic Explanations)
+
+*MIL-specific Methods:*
+- `attention`: MIL attention-based visualization
+
+**Key Parameters:**
+- `--method`: Visualization method to use (required)
+- `--wsi_folder`: Path to folder containing WSI images (required)
+- `--mask_folder`: Path to folder containing ground truth masks (required)
+- `--output_folder`: Path to output folder for results (required)
+- `--model_path`: Path to trained model (default: './models/best_fine_tuned_model_for_resnet18_cancervsnormal_v4.pth')
+- `--config`: Path to configuration file (default: './config/default.yaml')
+- `--patch_size`: Size of patches to extract from WSI (default: 224)
+- `--stride`: Stride between patches (default: 224)
+- `--target_class`: Target class for visualization (1=cancer, 0=normal) (default: 1)
+- `--device`: Device to use ('auto', 'cpu', 'cuda') (default: 'auto')
+- `--seed`: Random seed for reproducibility (default: 78)
+- `--verbose`: Enable verbose logging
 
 ### Visualization Step 2: Attention Fusion
 
-Combine and analyze different attention mechanisms:
+Combine and analyze different attention mechanisms using two specialized fusion approaches:
 
 ```bash
 cd visualization_step_2/fusion_visualization
 
-# Multi-modal attention fusion
-python fusion_analysis.py \
-    --mil_model "../../training_step_1/mil_classification/output/best_model.pth" \
-    --ssl_model "../../training_step_2/self_supervised_training/output/best_model.pth" \
-    --data_dir "../../dataset/visualization_dataset"
+# Multi-modal attention fusion (combines HierGAT, MIL, and CAM methods)
+python main_final_fusion.py \
+    --model_path "../../training_step_2/self_supervised_training/output/best_model.pt" \
+    --mil_model_path "../../training_step_1/mil_classification/output/best_model.pth" \
+    --dataset_dir "../../dataset/training_dataset_step_1/tma_core" \
+    --save_dir "./output/visualization_results" \
+    --mask_dir "../../dataset/training_dataset_step_2/mask"
+
+# HierGAT multi-level fusion (hierarchical attention analysis)
+python main_multi_level_fusion.py \
+    --model_path "../../training_step_2/self_supervised_training/output/best_model.pt" \
+    --dataset_dir "../../dataset/training_dataset_step_1/tma_core" \
+    --level_weights 0.5 0.3 0.2 \
+    --save_dir "./output/hiergat_visualization_results"
+
+# Advanced multi-modal fusion with custom CAM method
+python main_final_fusion.py \
+    --cam_method gradcam \
+    --fusion_method optimal \
+    --model_path "../../training_step_2/self_supervised_training/output/best_model.pt" \
+    --mil_model_path "../../training_step_1/mil_classification/output/best_model.pth" \
+    --dataset_dir "../../dataset/training_dataset_step_1/tma_core" \
+    --metrics_thresholds 0.2 0.4 0.6 0.8
+
+# Custom HierGAT level analysis with equal weights
+python main_multi_level_fusion.py \
+    --level_weights 0.33 0.33 0.34 \
+    --single_image "/path/to/specific_image.png" \
+    --calculate_metrics True
 ```
+
+**Available Scripts:**
+
+*Multi-Modal Fusion (`main_final_fusion.py`):*
+- Combines HierGAT, MIL, and CAM-based attention mechanisms
+- Supports 8 different CAM methods: `fullgrad`, `gradcam`, `hirescam`, `scorecam`, `gradcampp`, `ablationcam`, `xgradcam`, `eigencam`
+- Offers 5 fusion strategies: `confidence`, `optimal`, `weighted`, `adaptive`, `multiscale`
+- Provides comprehensive performance metrics and visualization overlays
+
+*HierGAT Multi-Level Fusion (`main_multi_level_fusion.py`):*
+- Focuses on hierarchical attention analysis across 3 levels
+- Allows custom weight configuration for Level 0, Level 1, and Level 2
+- Provides individual level visualizations and multilevel fusion
+- Includes core mask integration and detailed Excel metrics export
+
+**Key Parameters:**
+
+*main_final_fusion.py:*
+- `--cam_method`: CAM visualization method (default: 'fullgrad')
+- `--fusion_method`: Final fusion strategy (default: 'confidence')
+- `--model_path`: HierGAT model path (required)
+- `--mil_model_path`: MIL model path (required)
+- `--dataset_dir`: Input images directory (required)
+- `--save_dir`: Output directory (default: './output/visualization_results')
+- `--mask_dir`: Ground truth masks directory (required)
+- `--calculate_metrics`: Enable metrics calculation (default: True)
+- `--metrics_thresholds`: Threshold values for evaluation (default: 0.1-0.9)
+
+*main_multi_level_fusion.py:*
+- `--level_weights`: Weights for Level 0, 1, 2 (default: [0.5, 0.3, 0.2])
+- `--model_path`: HierGAT model path (required)
+- `--dataset_dir`: Input images directory (required)
+- `--save_dir`: Output directory (default: './output/hiergat_visualization_results')
+- `--single_image`: Process only specified image (optional)
+- `--output_suffix`: Add suffix to output directory (optional)
+- `--calculate_metrics`: Enable performance metrics (default: True)
+- `--metrics_thresholds`: Evaluation thresholds (default: 0.1-0.9)
 
 ## 🔬 Pipeline Steps
 
