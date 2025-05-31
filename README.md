@@ -31,18 +31,7 @@ GRAPHITE provides an end-to-end solution for analyzing histopathology images thr
 
 ## 🏗️ Pipeline Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Training      │    │   Training      │    │  Visualization  │    │  Visualization  │
-│   Step 1        │───▶│   Step 2        │───▶│   Step 1        │───▶│   Step 2        │
-│                 │    │                 │    │                 │    │                 │
-│ MIL             │    │ Self-Supervised │    │ XAI Analysis    │    │ Attention       │
-│ Classification  │    │ Learning        │    │ & Feature Maps  │    │ Fusion          │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
-        ↓                       ↓                       ↓                       ↓
-  Patch-level            Hierarchical           Explainable            Multi-modal
-  Attention              Graph Features         Visualizations         Fusion Maps
-```
+![GRAPHITE Pipeline Architecture](pipeline.png)
 
 ## 📋 Table of Contents
 
