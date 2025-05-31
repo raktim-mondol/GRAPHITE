@@ -3,13 +3,15 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.12+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](./docs)
+[![Documentation](https://img.shields.io/badge/docs-readthedocs-brightgreen.svg)](https://xai.readthedocs.io/en/latest/)
+[![Read the Docs](https://readthedocs.org/projects/xai/badge/?version=latest)](https://xai.readthedocs.io/en/latest/?badge=latest)
 
 ## 📄 About
 
 GRAPHITE is a state-of-the-art deep learning framework specifically designed for breast cancer histopathology analysis. Our approach combines graph-based representations with interpretable AI techniques to provide clinically relevant insights for pathologists. The framework leverages hierarchical graph attention networks and multiple instance learning to analyze tissue microenvironments while maintaining full explainability of predictions through advanced visualization techniques.
 
 **🔗 Explore GRAPHITE:**
+- **📖 [Complete Documentation](https://xai.readthedocs.io/en/latest/)** - Comprehensive documentation on Read the Docs
 - **📖 [Understand Our Code](https://deepwiki.com/raktim-mondol/GRAPHITE)** - Interactive code exploration and documentation
 - **🔍 [Code Tutorial](https://code2tutorial.com/tutorial/6f28591e-564f-4ea8-9c7b-e6df90011d14/index.md)** - Step-by-step guide to GRAPHITE implementation
 - **📊 [Interactive Dashboard](https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/ad21462b3017a3a2ddb4c0b9d796dc41/b4bf40ab-a0e0-446e-858f-1eb8f5aa4c56/index.html)** - Explore our work through an interactive dashboard
@@ -588,10 +590,10 @@ chmod -R 755 dataset/
 
 ## 📚 Additional Documentation
 
+- **[📖 Complete Documentation](https://xai.readthedocs.io/en/latest/)** - Full documentation on Read the Docs with API reference, tutorials, and examples
 - **[SETUP.md](SETUP.md)** - Detailed installation instructions
 - **[DATA_STRUCTURE.md](DATA_STRUCTURE.md)** - Comprehensive data organization guide
 - **[REPRODUCIBILITY.md](REPRODUCIBILITY.md)** - Steps to reproduce results
-- **[docs/](docs/)** - API documentation and advanced guides
 
 ## 🤝 Contributing
 
