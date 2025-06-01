@@ -47,7 +47,8 @@ pandas: 2.0.3
 scikit-learn: 1.3.0
 matplotlib: 3.7.2
 opencv-python: 4.8.0.76
-captum: 0.6.0
+grad-cam: 1.4.0
+shap: 0.41.0
 ```
 
 #### Hardware Specifications (Recommended)

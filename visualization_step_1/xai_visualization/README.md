@@ -37,7 +37,7 @@ This module requires specific XAI dependencies. Ensure you have the following in
 pip install grad-cam
 pip install shap
 pip install lime
-pip install captum
+pip install grad-cam
 ```
 
 ### Basic Usage

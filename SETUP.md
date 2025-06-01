@@ -580,7 +580,7 @@ import torch_geometric
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import captum
+import shap
 print('✓ All packages imported successfully')
 print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')

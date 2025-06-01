@@ -602,7 +602,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **TIA Toolbox** for histopathology image processing tools
 - **PyTorch Geometric** for graph neural network implementations  
-- **Captum** for explainable AI techniques
+- **Grad-CAM** for explainable AI visualization techniques
+- **SHAP** for interpretable machine learning
 - **Medical imaging community** for datasets and evaluation benchmarks
 
 ## 📞 Contact

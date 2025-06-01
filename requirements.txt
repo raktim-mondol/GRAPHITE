@@ -2,14 +2,18 @@
 # Consolidated Requirements File
 # This file includes dependencies for all modules in the pipeline
 
+# System Requirements:
+# - Python 3.9.2+
+# - PyTorch 2.0.0+
+# - CUDA 11.7.0+
+
 # Core PyTorch and Deep Learning
-torch>=1.9.0
-torchvision>=0.10.0
-torch-geometric>=2.0.0
-torch-scatter>=2.0.9
-torch-sparse>=0.6.12
-torch-cluster>=1.5.9
-torch-spline-conv>=1.2.1
+torch>=2.0.0
+torchvision>=0.15.0
+torch-geometric>=2.3.0
+# torch-scatter and torch-sparse require special installation - see notes below
+# torch-scatter>=2.1.0
+# torch-sparse>=0.6.17
 
 # Scientific Computing
 numpy>=1.20.0
@@ -30,9 +34,9 @@ Pillow>=8.0.0
 scikit-image>=0.18.0
 
 # Explainable AI
-pytorch-grad-cam>=1.4.0
-captum>=0.5.0
+grad-cam>=1.4.0
 lime>=0.2.0
+shap>=0.41.0
 
 # Data Processing
 tqdm>=4.60.0
@@ -56,15 +60,24 @@ tensorboard>=2.7.0
 # wandb>=0.12.0  # Uncomment if using Weights & Biases
 
 # Optional: Color Normalization
-spams  # For Macenko color normalization (may require manual installation)
+# Macenko color normalization is implemented using standard libraries (NumPy, PIL)
+# No additional dependencies required for color normalization
 
 # Installation Notes:
-# 1. PyTorch Geometric can be tricky to install. Try:
+# 1. System Requirements:
+#    - Python 3.9.2 or higher
+#    - PyTorch 2.0.0 or higher
+#    - CUDA 11.7.0 or higher
+#
+# 2. Install PyTorch with CUDA support first:
+#    pip install torch>=2.0.0 torchvision>=0.15.0 --index-url https://download.pytorch.org/whl/cu117
+#
+# 3. Install torch-scatter and torch-sparse (MUST be installed separately):
+#    pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.0.0+cu117.html
+#
+# 4. PyTorch Geometric installation:
 #    conda install pyg -c pyg
 #    or follow: https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html
 #
-# 2. SPAMS (for color normalization) may require:
-#    conda install -c conda-forge python-spams
-#
-# 3. For CUDA support, ensure PyTorch is installed with CUDA:
-#    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 
+# 5. Color normalization (Macenko method) is implemented using standard libraries
+#    and doesn't require additional dependencies beyond NumPy and PIL

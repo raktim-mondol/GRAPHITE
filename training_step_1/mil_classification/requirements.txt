@@ -1,5 +1,8 @@
-torch>=1.7.0
-torchvision>=0.8.0
+# MIL Classification Requirements
+# System Requirements: Python 3.9.2+, PyTorch 2.0.0+, CUDA 11.7.0+
+
+torch>=2.0.0
+torchvision>=0.15.0
 timm>=0.4.12
 numpy>=1.19.0
 pandas>=1.1.0
@@ -8,3 +11,7 @@ scikit-learn>=0.23.0
 tqdm>=4.50.0
 Pillow>=8.0.0
 scipy>=1.5.0
+
+# Installation Notes:
+# 1. Install PyTorch with CUDA 11.7+ support:
+#    pip install torch>=2.0.0 torchvision>=0.15.0 --index-url https://download.pytorch.org/whl/cu117

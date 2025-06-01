@@ -148,7 +148,7 @@ The system evaluates performance using multiple metrics across various threshold
 - PyTorch ≥ 1.9.0
 - torchvision ≥ 0.10.0
 - torch-geometric ≥ 2.0.0
-- pytorch-grad-cam ≥ 1.4.0
+- grad-cam ≥ 1.4.0
 
 ### Analysis Libraries
 - numpy ≥ 1.21.0
