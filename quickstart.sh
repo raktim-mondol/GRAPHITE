@@ -102,7 +102,7 @@ install_dependencies() {
     # Install PyTorch first
     if command -v nvidia-smi &> /dev/null; then
         info "Installing PyTorch with CUDA support..."
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
     else
         info "Installing PyTorch CPU-only..."
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -115,7 +115,7 @@ install_dependencies() {
     else
         pip install torch-geometric
         if command -v nvidia-smi &> /dev/null; then
-            pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.0+cu118.html
+            pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.0+cu117.html
         else
             pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
         fi

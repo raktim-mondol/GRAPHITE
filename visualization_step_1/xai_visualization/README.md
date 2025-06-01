@@ -182,9 +182,10 @@ python main.py --method gradcam \
 
 ## 📋 Requirements
 
-- Python 3.7+
-- PyTorch 1.9+
-- CUDA (optional, for GPU acceleration)
+- Python 3.9.2 or higher
+- PyTorch 2.0.0
+- CUDA 11.7
+- NVIDIA Tesla V100 32GB (used/recommended) or equivalent CUDA-compatible GPU (optional, for GPU acceleration)
 
 See `requirements.txt` for complete dependency list.
 

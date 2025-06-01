@@ -51,9 +51,10 @@ training_step_1/
 ### Prerequisites
 
 1. **Python Environment**: Python 3.8+
-2. **Dependencies**: Install from requirements.txt
-3. **Data Structure**: Organized patient folders with patch images
-4. **Labels**: Cancer and normal patient ID files
+2. **GPU**: NVIDIA Tesla V100 32GB (used/recommended) or equivalent CUDA-capable GPU
+3. **Dependencies**: Install from requirements.txt
+4. **Data Structure**: Organized patient folders with patch images
+5. **Labels**: Cancer and normal patient ID files
 
 ### Installation
 
@@ -157,6 +158,8 @@ model = MILHistopathModel(
     model_name="hf-hub:1aurent/resnet18.tiatoolbox-kather100k"
 )
 ```
+
+**📎 Model Reference:** For detailed information about the pre-trained ResNet18 model used in this implementation, see: [ResNet18 TIA Toolbox on Hugging Face](https://huggingface.co/1aurent/resnet18.tiatoolbox-kather100k)
 
 ## 📊 Training Process
 

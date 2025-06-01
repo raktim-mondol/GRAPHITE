@@ -4,40 +4,34 @@
 # Core PyTorch dependencies
 torch>=2.0.0
 torchvision>=0.15.0
-torch_geometric>=2.3.0
-torchsummary
+torch-geometric>=2.3.0
+# torch-scatter and torch-sparse require special installation - see notes below
+# torch-scatter>=2.1.0
+# torch-sparse>=0.6.17
 
 # Scientific computing
 numpy>=1.20.0
 scipy>=1.7.0
+pandas>=1.3.0
+
+# Machine Learning
 scikit-learn>=1.0.0
+timm>=0.4.12
+
+# Visualization and Plotting
+matplotlib>=3.4.0
 
 # Image processing
-Pillow>=8.0.0
 opencv-python>=4.5.0
-matplotlib>=3.3.0
+Pillow>=8.0.0
 
-# Data handling
-pandas>=1.3.0
+# Data Processing
 tqdm>=4.60.0
-
-# Configuration
 PyYAML>=5.4.0
 
-# Computer vision models
-timm>=0.4.0
-
-# For scatter operations (PyTorch Geometric dependency)
-# NOTE: These must be installed separately - see installation notes below
-# torch-scatter>=2.1.0
-# torch-sparse>=0.6.17
-# torch-cluster>=1.6.0
-# torch-spline-conv>=1.2.1
-
-# Optional: For better image reading
+# Additional dependencies for this module
+torchsummary
 dask[array]>=2021.6.0
-
-# Optional: For network analysis
 networkx>=2.6
 
 # Installation Notes:
@@ -46,3 +40,5 @@ networkx>=2.6
 #
 # 2. Install torch-scatter and torch-sparse (REQUIRED - must be installed separately):
 #    pip install torch-scatter torch-sparse -f https://data.pyg.org/whl/torch-2.0.0+cu117.html
+#
+# 3. For complete pipeline dependencies, see main requirements.txt in project root

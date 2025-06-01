@@ -1,3 +1,8 @@
+# Documentation Requirements
+# For building documentation with Sphinx
+
 sphinx>=4.0
 sphinx-rtd-theme
 myst-parser
+
+# Note: For complete project dependencies, see main requirements.txt in project root

@@ -6,7 +6,7 @@ This document provides quick start instructions for running the MIL classificati
 
 ### 1. Basic Training (Recommended)
 
-**Linux/macOS:**
+**Linux:**
 ```bash
 cd training_step_1
 ./run_training.sh
@@ -26,7 +26,7 @@ python run_training.py
 
 ### 2. Quick Test (2 epochs, fast)
 
-**Linux/macOS:**
+**Linux:**
 ```bash
 ./run_training.sh --quick_test
 ```

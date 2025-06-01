@@ -38,9 +38,9 @@ cd GRAPHITE
 
 #### Software Versions
 ```yaml
-python: 3.9.16
-torch: 2.0.1+cu118
-torchvision: 0.15.2+cu118
+python: 3.9.2
+torch: 2.0.0+cu117
+torchvision: 0.15.0+cu117
 torch-geometric: 2.3.1
 numpy: 1.24.3
 pandas: 2.0.3
@@ -53,7 +53,7 @@ shap: 0.41.0
 
 #### Hardware Specifications (Recommended)
 ```yaml
-gpu: NVIDIA RTX 3070 or better (8GB+ VRAM)
+gpu: NVIDIA Tesla V100 32GB (used/recommended)
 ram: 16GB+ system memory
 storage: 50GB+ free space (SSD recommended)
 cpu: 8+ cores
@@ -77,7 +77,7 @@ python3.9 -m venv graphite_env
 source graphite_env/bin/activate
 
 # Install exact PyTorch version
-pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.0.0+cu117 torchvision==0.15.0+cu117 torchaudio==2.0.0+cu117 --index-url https://download.pytorch.org/whl/cu117
 
 # Install exact dependencies
 pip install -r requirements.txt

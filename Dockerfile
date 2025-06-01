@@ -1,7 +1,7 @@
 # GRAPHITE: Multi-Step Histopathology Analysis Pipeline
 # Docker Configuration for Reproducible Deployment
 
-FROM nvidia/cuda:11.8-devel-ubuntu20.04
+FROM nvidia/cuda:11.7-devel-ubuntu20.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -53,11 +53,11 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 # Upgrade pip
 RUN pip install --upgrade pip setuptools wheel
 
-# Install PyTorch with CUDA support
-RUN pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+# Install PyTorch with CUDA support (aligned with requirements.txt)
+RUN pip install torch>=2.0.0 torchvision>=0.15.0 --index-url https://download.pytorch.org/whl/cu117
 
 # Install PyTorch Geometric and related packages
-RUN pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-2.0.0+cu118.html
+RUN pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-2.0.0+cu117.html
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
@@ -66,7 +66,6 @@ RUN pip install -r requirements.txt
 # Install additional dependencies that may be needed
 RUN pip install \
     wandb \
-    tensorboard \
     jupyter \
     ipykernel \
     notebook
@@ -93,8 +92,8 @@ RUN chmod +x visualization_step_2/fusion_visualization/run_code.sh || true
 # Install Jupyter kernel
 RUN python -m ipykernel install --name=graphite --display-name="GRAPHITE"
 
-# Expose ports for Jupyter and TensorBoard
-EXPOSE 8888 6006
+# Expose ports for Jupyter
+EXPOSE 8888
 
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\

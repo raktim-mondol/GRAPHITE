@@ -43,22 +43,6 @@ tqdm>=4.60.0
 PyYAML>=5.4.0
 openpyxl>=3.0.0
 
-# Utilities
-argparse
-logging
-pathlib
-json
-pickle
-
-# Optional: Development and Debugging
-pytest>=6.0.0
-jupyter>=1.0.0
-ipykernel>=6.0.0
-
-# Optional: Experiment Tracking
-tensorboard>=2.7.0
-# wandb>=0.12.0  # Uncomment if using Weights & Biases
-
 # Optional: Color Normalization
 # Macenko color normalization is implemented using standard libraries (NumPy, PIL)
 # No additional dependencies required for color normalization

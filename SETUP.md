@@ -25,18 +25,17 @@ This comprehensive guide will help you set up the GRAPHITE histopathology analys
 - **CPU**: 8+ core processor (Intel i7/i9 or AMD Ryzen 7/9)
 - **RAM**: 16GB+ system memory (32GB for large datasets)
 - **Storage**: 50GB+ free space (SSD recommended)
-- **GPU**: NVIDIA GPU with 8GB+ VRAM (RTX 3070, Tesla V100, or better)
+- **GPU**: NVIDIA Tesla V100 32GB (used/recommended)
 
 ### Software Requirements
 
 #### Operating System
 - **Linux**: Ubuntu 18.04+ (recommended), CentOS 7+, or other modern distributions
-- **macOS**: 10.15+ (Catalina or later)
 - **Windows**: Windows 10/11 with WSL2 (Windows Subsystem for Linux)
 
 #### Core Software
-- **Python**: 3.8, 3.9, or 3.10 (3.9 recommended)
-- **CUDA**: 11.3+ (for GPU acceleration)
+- **Python**: 3.9.2 or higher (3.9.2 recommended)
+- **CUDA**: 11.7 (for GPU acceleration)
 - **Git**: For cloning the repository
 
 ## 🚀 Installation Methods
@@ -78,7 +77,7 @@ cd GRAPHITE
 python3 -m venv graphite_env
 
 # Activate virtual environment
-# On Linux/macOS:
+# On Linux:
 source graphite_env/bin/activate
 # On Windows:
 graphite_env\Scripts\activate
@@ -94,7 +93,7 @@ Choose the appropriate command based on your system:
 
 **With CUDA support (recommended for GPU):**
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 ```
 
 **CPU only:**
@@ -124,7 +123,7 @@ conda activate graphite
 #### Step 2: Install PyTorch and PyTorch Geometric
 ```bash
 # Install PyTorch
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 
 # Install PyTorch Geometric
 conda install pyg -c pyg
@@ -360,21 +359,6 @@ sudo apt-get update
 sudo apt-get install cuda
 ```
 
-### macOS
-
-#### Install Homebrew (if not installed)
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-#### Install Dependencies
-```bash
-brew install python@3.9 git
-
-# Install Xcode command line tools
-xcode-select --install
-```
-
 ### Windows (WSL2)
 
 #### Enable WSL2
@@ -415,7 +399,7 @@ conda install pyg -c pyg
 
 2. **Install dependencies manually**:
 ```bash
-pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.12.0+cu113.html
+pip install torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.12.0+cu117.html
 pip install torch-geometric
 ```
 
@@ -441,9 +425,6 @@ nvcc --version
 
 2. **Install matching PyTorch**:
 ```bash
-# For CUDA 11.8
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
 # For CUDA 11.7
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 ```

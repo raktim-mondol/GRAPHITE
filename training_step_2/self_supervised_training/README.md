@@ -23,17 +23,19 @@ GRAPHITE implements a novel self-supervised learning approach that:
 ## 📋 Requirements
 
 ### System Requirements
-- Python 3.8+
-- CUDA-capable GPU (recommended)
+- Python 3.9.2 or higher
+- PyTorch 2.0.0
+- CUDA 11.7
+- NVIDIA Tesla V100 32GB (used/recommended) or equivalent CUDA-capable GPU
 - 8GB+ RAM
 - 10GB+ storage for model checkpoints
 
 ### Dependencies
 
 ```bash
-torch>=1.9.0
+torch>=2.0.0
 torch-geometric>=2.0.0
-torchvision>=0.10.0
+torchvision>=0.15.0
 numpy>=1.20.0
 scipy>=1.7.0
 scikit-learn>=1.0.0

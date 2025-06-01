@@ -2,8 +2,10 @@
 
 ## Prerequisites
 
-- Python 3.7 or higher
-- CUDA-compatible GPU (optional, for faster processing)
+- Python 3.9.2 or higher
+- PyTorch 2.0.0
+- CUDA 11.7
+- NVIDIA Tesla V100 32GB (used/recommended) or equivalent CUDA-compatible GPU (optional, for faster processing)
 
 ## Installation Methods
 
@@ -56,11 +58,8 @@ For GPU acceleration, ensure you have:
 3. PyTorch with CUDA support:
 
 ```bash
-# For CUDA 11.8
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
-
-# For CUDA 12.1
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# For CUDA 11.7
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu117
 ```
 
 ## Troubleshooting

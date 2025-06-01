@@ -31,11 +31,9 @@ services:
       - ./visualization_step_2/fusion_visualization/output:/workspace/visualization_step_2/fusion_visualization/output:rw
       - ./logs:/workspace/logs:rw                          # Logs directory
       - ./notebooks:/workspace/notebooks:rw                # Jupyter notebooks
-    
-    # Port mappings
+      # Port mappings
     ports:
       - "8888:8888"     # Jupyter Notebook
-      - "6006:6006"     # TensorBoard
       - "8080:8080"     # Additional web interface
     
     # Working directory
@@ -98,37 +96,8 @@ services:
         --NotebookApp.token='' 
         --NotebookApp.password=''
       "
-    
-    profiles:
+      profiles:
       - jupyter  # Only start with: docker-compose --profile jupyter up
-
-  # Optional: TensorBoard service
-  tensorboard:
-    build: .
-    image: graphite:latest
-    container_name: graphite-tensorboard
-    
-    volumes:
-      - ./training_step_1/mil_classification/output:/workspace/training_step_1/mil_classification/output:ro
-      - ./training_step_2/self_supervised_training/output:/workspace/training_step_2/self_supervised_training/output:ro
-      - ./logs:/workspace/logs:ro
-    
-    ports:
-      - "6007:6006"     # TensorBoard on different port
-    
-    working_dir: /workspace
-    
-    command: >
-      bash -c "
-        tensorboard 
-        --logdir=/workspace/logs 
-        --host=0.0.0.0 
-        --port=6006
-        --reload_interval=5
-      "
-    
-    profiles:
-      - tensorboard  # Only start with: docker-compose --profile tensorboard up
 
 # Named volumes for persistent data
 volumes:
