@@ -144,7 +144,7 @@ python visualization_step_2/fusion_visualization/main_final_fusion.py
 - **[Training Step 1](training_step_1/USAGE.md)** - MIL classification parameters and options
 - **[Training Step 2](training_step_2/self_supervised_training/README.md)** - HierGAT training configuration
 - **[Visualization Step 1](visualization_step_1/xai_visualization/README.md)** - XAI methods and parameters  
-- **[Visualization Step 2](visualization_step_2/fusion_visualization/)** - Attention fusion approaches
+- **[Visualization Step 2](visualization_step_2/fusion_visualization/README_main_final_fusion.md)** - Attention fusion approaches
 
 ## 🔬 Pipeline Steps
 
@@ -277,7 +277,6 @@ chmod -R 755 dataset/
 
 ## 📚 Additional Documentation
 
-- **[📖 Complete Documentation](https://xai.readthedocs.io/en/latest/)** - Full documentation on Read the Docs with API reference, tutorials, and examples
 - **[SETUP.md](SETUP.md)** - Detailed installation instructions
 - **[DATA_STRUCTURE.md](DATA_STRUCTURE.md)** - Comprehensive data organization guide
 - **[REPRODUCIBILITY.md](REPRODUCIBILITY.md)** - Steps to reproduce results
