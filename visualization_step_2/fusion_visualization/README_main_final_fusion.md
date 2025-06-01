@@ -1,6 +1,6 @@
 # Final Fusion Visualization System
 
-This system provides comprehensive multi-attention visualization combining HierGAT, MIL, and CAM-based attention mechanisms for tissue microarray core analysis.
+This system provides comprehensive saliency map visualization combining HierGAT, MIL, and CAM-based attention mechanisms for tissue microarray core analysis.
 
 ## Overview
 

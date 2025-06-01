@@ -27,7 +27,7 @@ GRAPHITE provides an end-to-end solution for analyzing histopathology images thr
 1. **MIL Classification** - Train attention-based models on patch-level data
 2. **Self-Supervised Learning** - Learn hierarchical representations using Graph Neural Networks  
 3. **XAI Visualization** - Generate explainable attention maps and feature visualizations
-4. **Multi-Modal Fusion** - Combine different attention mechanisms for enhanced interpretability
+4. **Saliency Map Fusion** - Combine different attention mechanisms for enhanced interpretability
 
 ## 🏗️ Pipeline Architecture
 
@@ -380,7 +380,7 @@ Combine and analyze different attention mechanisms using two specialized fusion 
 ```bash
 cd visualization_step_2/fusion_visualization
 
-# Multi-modal attention fusion (combines HierGAT, MIL, and CAM methods)
+# Saliency map attention fusion (combines HierGAT, MIL, and CAM methods)
 python main_final_fusion.py \
     --model_path "../../training_step_2/self_supervised_training/output/best_model.pt" \
     --mil_model_path "../../training_step_1/mil_classification/output/best_model.pth" \
@@ -395,7 +395,7 @@ python main_multi_level_fusion.py \
     --level_weights 0.5 0.3 0.2 \
     --save_dir "./output/hiergat_visualization_results"
 
-# Advanced multi-modal fusion with custom CAM method
+# Advanced saliency map fusion with custom CAM method
 python main_final_fusion.py \
     --cam_method gradcam \
     --fusion_method optimal \
@@ -413,7 +413,7 @@ python main_multi_level_fusion.py \
 
 **Available Scripts:**
 
-*Multi-Modal Fusion (`main_final_fusion.py`):*
+*Saliency Map Fusion (`main_final_fusion.py`):*
 - Combines HierGAT, MIL, and CAM-based attention mechanisms
 - Supports 8 different CAM methods: `fullgrad`, `gradcam`, `hirescam`, `scorecam`, `gradcampp`, `ablationcam`, `xgradcam`, `eigencam`
 - Offers 5 fusion strategies: `confidence`, `optimal`, `weighted`, `adaptive`, `multiscale`
@@ -477,7 +477,7 @@ python main_multi_level_fusion.py \
   - Interactive visualization tools
   - Quantitative explainability metrics
 
-### Step 4: Multi-Modal Fusion
+### Step 4: Saliency Map Fusion
 - **Input**: MIL and SSL models + visualization data
 - **Process**: Attention fusion and multi-scale analysis
 - **Output**: Enhanced interpretability and diagnostic insights

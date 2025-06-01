@@ -320,7 +320,7 @@ python fusion_analysis.py \
 - **CPU**: 1-2 hours
 
 #### Key Outputs
-- `./output/fusion_maps/`: Multi-modal attention fusion results
+- `./output/fusion_maps/`: Saliency map attention fusion results
 - `./output/comparison_metrics.json`: Quantitative evaluation
 - `./output/final_report.pdf`: Comprehensive analysis report
 
@@ -371,7 +371,7 @@ Integrated Gradients Sensitivity: >0.65
 
 #### Fusion Performance
 ```yaml
-Multi-modal Coherence: >0.85
+Saliency Map Coherence: >0.85
 Cross-attention Alignment: >0.80
 Diagnostic Confidence: >0.90
 ```
