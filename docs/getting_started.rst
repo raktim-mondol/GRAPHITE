@@ -8,7 +8,7 @@ Clone the repository:
 
 .. code-block:: bash
 
-   git clone https://github.com/your-username/graphite.git
+   git clone https://github.com/raktim-mondol/graphite.git
    cd graphite
 
 Install dependencies:

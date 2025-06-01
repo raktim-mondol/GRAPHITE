@@ -47,8 +47,8 @@ The quickest way to get started is using the automated setup script:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/graphite-histopathology.git
-cd graphite-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 
 # Make the script executable
 chmod +x quickstart.sh
@@ -68,8 +68,8 @@ Follow the menu options:
 
 #### Step 1: Clone Repository
 ```bash
-git clone https://github.com/your-username/graphite-histopathology.git
-cd graphite-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 ```
 
 #### Step 2: Create Virtual Environment
@@ -140,8 +140,8 @@ pip install -r requirements.txt
 #### Option A: Using Docker Compose (Recommended)
 ```bash
 # Clone repository
-git clone https://github.com/your-username/graphite-histopathology.git
-cd graphite-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 
 # Build and run with GPU support
 docker-compose up --build
@@ -306,7 +306,7 @@ Set up environment variables for consistent paths:
 
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc
-export GRAPHITE_ROOT="/path/to/graphite-histopathology"
+export GRAPHITE_ROOT="/path/to/GRAPHITE"
 export GRAPHITE_DATA="$GRAPHITE_ROOT/dataset"
 export CUDA_VISIBLE_DEVICES=0  # Set GPU device
 ```

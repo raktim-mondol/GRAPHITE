@@ -11,8 +11,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/xai-histopathology.git
-cd xai-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 ```
 
 2. Create a virtual environment:
@@ -34,7 +34,7 @@ pip install -e .
 ### Method 2: Using pip (when published)
 
 ```bash
-pip install xai-histopathology
+pip install GRAPHITE
 ```
 
 ## Verify Installation
@@ -81,5 +81,5 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 If you encounter issues:
 
 1. Check the [FAQ](faq.md)
-2. Search existing [GitHub issues](https://github.com/your-username/xai-histopathology/issues)
+2. Search existing [GitHub issues](https://github.com/raktim-mondol/GRAPHITE/issues)
 3. Create a new issue with detailed error information 

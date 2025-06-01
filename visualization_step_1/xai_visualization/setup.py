@@ -24,14 +24,14 @@ def get_version():
     return "1.0.0"
 
 setup(
-    name="xai-histopathology",
+    name="GRAPHITE",
     version=get_version(),
     author="XAI Visualization Team",
     author_email="contact@example.com",
     description="A comprehensive toolkit for explaining AI model predictions on histopathology images",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-username/xai-histopathology",
+    url="https://github.com/raktim-mondol/GRAPHITE",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -63,7 +63,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "xai-histopathology=main:main",
+            "GRAPHITE=main:main",
         ],
     },
     include_package_data=True,
@@ -71,9 +71,8 @@ setup(
         "": ["config/*.yaml"],
     },
     keywords="explainable-ai, histopathology, medical-imaging, deep-learning, visualization",
-    project_urls={
-        "Bug Reports": "https://github.com/your-username/xai-histopathology/issues",
-        "Source": "https://github.com/your-username/xai-histopathology",
-        "Documentation": "https://xai-histopathology.readthedocs.io/",
+    project_urls={        "Bug Reports": "https://github.com/raktim-mondol/GRAPHITE/issues",
+        "Source": "https://github.com/raktim-mondol/GRAPHITE",
+        "Documentation": "https://xai.readthedocs.io/",
     },
 ) 

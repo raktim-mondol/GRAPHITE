@@ -18,8 +18,8 @@ For immediate reproduction with demo data:
 
 ```bash
 # Clone and setup
-git clone https://github.com/your-username/graphite-histopathology.git
-cd graphite-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 ./quickstart.sh
 
 # Follow menu options:
@@ -62,8 +62,8 @@ cpu: 8+ cores
 
 #### Method 1: Using quickstart.sh (Recommended)
 ```bash
-git clone https://github.com/your-username/graphite-histopathology.git
-cd graphite-histopathology
+git clone https://github.com/raktim-mondol/GRAPHITE.git
+cd GRAPHITE
 chmod +x quickstart.sh
 ./quickstart.sh
 # Select option 2: "Setup environment and install dependencies"
