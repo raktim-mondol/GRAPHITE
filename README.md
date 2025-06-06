@@ -5,10 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Read the Docs](https://img.shields.io/badge/docs-readthedocs-brightgreen.svg)](https://xai-graphite.readthedocs.io/en/latest/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/raktim-mondol/GRAPHITE)
-[![Paper Website](https://img.shields.io/badge/Paper%20Website-Visit-blue?style=for-the-badge&logo=netlify)](https://beamish-tartufo-7df496.netlify.app/)]
-[![Tutorial](https://img.shields.io/badge/Tutorial-Guide-orange?style=for-the-badge&logo=readthedocs)](https://code2tutorial.com/tutorial/6f28591e-564f-4ea8-9c7b-e6df90011d14/index.md)]
+[![Paper Website](https://img.shields.io/badge/Paper%20Website-Visit-blue?style=for-the-badge&logo=netlify)](https://beamish-tartufo-7df496.netlify.app/)
+[![Tutorial](https://img.shields.io/badge/Tutorial-Guide-orange?style=for-the-badge&logo=readthedocs)](https://code2tutorial.com/tutorial/6f28591e-564f-4ea8-9c7b-e6df90011d14/index.md)
 [![Analytical Report](https://img.shields.io/badge/Analysis-Report-purple?style=for-the-badge&logo=perplexity)](https://www.perplexity.ai/page/explainable-ai-in-histopatholo-K9_5b__ZToK5XXM5T67OvA)
-[![Complete Documentation](https://img.shields.io/badge/Documentation-ReadTheDocs-brightgreen?style=for-the-badge&logo=readthedocs)](https://xai-graphite.readthedocs.io/)]
+[![Complete Documentation](https://img.shields.io/badge/Documentation-ReadTheDocs-brightgreen?style=for-the-badge&logo=readthedocs)](https://xai-graphite.readthedocs.io/)
 - 
 ## 📄 About
 
