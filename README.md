@@ -3,12 +3,12 @@
 [![Python 3.9.2+](https://img.shields.io/badge/Python-3.9.2+-blue?style=for-the-badge&logo=python)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-orange?style=for-the-badge&logo=pytorch)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensource)](https://opensource.org/licenses/MIT)
-[![Read the Docs](https://img.shields.io/badge/Docs-ReadTheDocs-brightgreen?style=for-the-badge&logo=readthedocs)](https://xai-graphite.readthedocs.io/en/latest/)
+[![Read the Docs](https://img.shields.io/badge/Docs-ReadTheDocs-brightgreen?style=for-the-badge&logo=readthedocs)](https://xai-graphite.readthedocs.io/)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue?style=for-the-badge&logo=gitbook)](https://deepwiki.com/raktim-mondol/GRAPHITE)
 [![Paper Website](https://img.shields.io/badge/Paper-Website-blue?style=for-the-badge&logo=netlify)](https://beamish-tartufo-7df496.netlify.app/)
 [![Tutorial](https://img.shields.io/badge/Tutorial-Guide-orange?style=for-the-badge&logo=readthedocs)](https://code2tutorial.com/tutorial/6f28591e-564f-4ea8-9c7b-e6df90011d14/index.md)
 [![Analytical Report](https://img.shields.io/badge/Analysis-Report-purple?style=for-the-badge&logo=perplexity)](https://www.perplexity.ai/page/explainable-ai-in-histopatholo-K9_5b__ZToK5XXM5T67OvA)
-[![Complete Documentation](https://img.shields.io/badge/Documentation-ReadTheDocs-brightgreen?style=for-the-badge&logo=readthedocs)](https://xai-graphite.readthedocs.io/)
+
 - 
 ## 📄 About
 
