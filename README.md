@@ -3,7 +3,7 @@
 [![Python 3.9.2+](https://img.shields.io/badge/python-3.9.2+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0.0+-orange.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Documentation](https://img.shields.io/badge/docs-readthedocs-brightgreen.svg)]([[https://xai.readthedocs.io/en/latest/](https://xai-graphite.readthedocs.io/en/latest/?badge=latest)](https://xai-graphite.readthedocs.io/en/latest/?badge=latest))
+[![Read the Docs](https://img.shields.io/badge/docs-readthedocs-brightgreen.svg)](https://readthedocs.org/projects/xai/badge/?version=latest))
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)]([https://deepwiki.com/raktim-mondol/BioFusionNet](https://deepwiki.com/raktim-mondol/GRAPHITE))
 ## 📄 About
 
