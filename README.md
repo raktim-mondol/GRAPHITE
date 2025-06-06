@@ -9,7 +9,6 @@
 [![Tutorial](https://img.shields.io/badge/Tutorial-Guide-orange?style=for-the-badge&logo=readthedocs)](https://code2tutorial.com/tutorial/6f28591e-564f-4ea8-9c7b-e6df90011d14/index.md)
 [![Analytical Report](https://img.shields.io/badge/Analysis-Report-purple?style=for-the-badge&logo=perplexity)](https://www.perplexity.ai/page/explainable-ai-in-histopatholo-K9_5b__ZToK5XXM5T67OvA)
 
-- 
 ## 📄 About
 
 GRAPHITE is a state-of-the-art deep learning framework specifically designed for breast cancer histopathology analysis. Our approach combines graph-based representations with interpretable AI techniques to provide clinically relevant insights for pathologists. The framework leverages hierarchical graph attention networks and multiple instance learning to analyze tissue microenvironments while maintaining full explainability of predictions through advanced visualization techniques.
