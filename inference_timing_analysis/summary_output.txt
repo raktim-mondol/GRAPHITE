@@ -1,0 +1,28 @@
+GRAPHITE PIPELINE MODEL SUMMARY
+==================================================
+
+TRAINING STEP 1 (MIL Classification):
+  Total Parameters: 12,034,882 (12.03M)
+  ├─ ResNet18 backbone: 11,176,512 (11.18M)
+  └─ MIL components: 858,370 (0.86M)
+  Estimated FLOPs: ~878 GFLOPs
+
+TRAINING STEP 2 (HierGAT):
+  ✗ Analysis failed: No module named 'models.hiergat'
+
+PIPELINE SUMMARY:
+
+THEORETICAL VALIDATION:
+  Step 1 Theory: 12.03M parameters
+  Step 2 Theory: 0.17M parameters
+
+ARCHITECTURE OVERVIEW:
+  • Step 1: ResNet18 + MIL classifier
+    - Processes 484 patches (22×22 grid)
+    - Attention-based aggregation
+  • Step 2: Hierarchical Graph Attention
+    - 3-level hierarchy with cross-scale attention
+    - Multi-head GAT layers
+  • Pipeline dominance: Step 1 (>95% of parameters)
+
+==================================================

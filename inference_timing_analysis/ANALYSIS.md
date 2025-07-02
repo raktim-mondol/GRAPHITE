@@ -25,13 +25,13 @@ This analysis provides inference time estimates for the GRAPHITE histopathology 
 | Patient LayerNorm | 1,024 | 512×2 |
 | **Total** | **858,370** | **0.9M parameters** |
 
-### HierGAT Parameter Breakdown (0.2M parameters)
+### HierGAT Parameter Breakdown (0.17M parameters)
 | Component | Parameters | Calculation |
 |-----------|------------|-------------|
-| GAT Layers (3 layers) | 102,912 | 2×GATConv + LayerNorm per layer |
+| GAT Layers (3 layers) | 101,376 | 2×GATConv + LayerNorm per layer |
 | ScaleWiseAttention | 33,926 | 3 level attention + cross-scale |
 | Projection Head | 33,280 | 128×128+128 + 128×2 + 128×128+128 |
-| **Total** | **170,118** | **0.2M parameters** |
+| **Total** | **168,582** | **0.17M parameters** |
 
 ## Detailed FLOP Analysis
 
@@ -55,13 +55,13 @@ This analysis provides inference time estimates for the GRAPHITE histopathology 
 | Classifier | 131,328 | 512×256 + 256×1 |
 | **Total** | **191,085,796** | **0.2 GFLOPs** |
 
-### HierGAT FLOP Breakdown (0.2 GFLOPs)
+### HierGAT FLOP Breakdown (0.05 GFLOPs)
 | Component | FLOPs | Description |
 |-----------|-------|-------------|
-| GAT Layers | 191,803,392 | Message passing + attention (3 layers) |
-| Scale Attention | 4,012,800 | Level-specific + cross-scale attention |
+| GAT Layers | 48,347,136 | Message passing + attention (3 layers) |
+| Scale Attention | 4,021,056 | Level-specific + cross-scale attention |
 | Projection Head | 32,768 | 128×128 + 128×128 |
-| **Total** | **195,848,960** | **0.2 GFLOPs** |
+| **Total** | **52,400,960** | **0.05 GFLOPs** |
 
 ## Pipeline Specifications
 
@@ -76,29 +76,29 @@ This analysis provides inference time estimates for the GRAPHITE histopathology 
 
 ### Pipeline 2: GRAPHITE Fusion
 - **Components**: training_step_1 + training_step_2 + visualization_step_2
-- **Models**: ResNet18 (11.2M) + MIL classifier (0.9M) + HierGAT (0.2M)
+- **Models**: ResNet18 (11.2M) + MIL classifier (0.9M) + HierGAT (0.17M)
 - **Total Parameters**: 12.2M
-- **Base FLOPs**: 878.2 GFLOPs (MIL + HierGAT)
+- **Base FLOPs**: 878.05 GFLOPs (MIL + HierGAT)
 - **Additional FLOPs**:
   - FullGrad computation: 1,316.9 GFLOPs
   - Fusion processing: 0.1 GFLOPs
-- **Total FLOPs**: 2,195.2 GFLOPs
+- **Total FLOPs**: 2,195.05 GFLOPs
 - **Inference Time**: 510ms (fixed FullGrad)
 
 ## Complexity Analysis
 
 ### Parameter Comparison (GRAPHITE vs Pipeline 1 FullGrad)
-- **Total Parameters**: 12.2M vs 12.0M = **1.02x more**
-- **Additional HierGAT**: 170K parameters (1.4% increase)
+- **Total Parameters**: 12.2M vs 12.0M = **1.01x more**
+- **Additional HierGAT**: 169K parameters (1.4% increase)
 - **Parameter efficiency**: Very similar parameter count
 
 ### FLOP Comparison (GRAPHITE vs Pipeline 1 FullGrad)
-- **Total FLOPs**: 2,195.2 vs 2,194.9 GFLOPs = **1.00x similar**
+- **Total FLOPs**: 2,195.05 vs 2,194.9 GFLOPs = **1.00x similar**
 - **FLOP distribution**:
   - ResNet18: 877.8 GFLOPs (40.0%) - same for both
   - MIL Classifier: 0.2 GFLOPs (0.0%) - same for both
   - FullGrad: 1,316.9 GFLOPs (60.0%) - same for both
-  - HierGAT: 0.2 GFLOPs (0.0%) - GRAPHITE only
+  - HierGAT: 0.05 GFLOPs (0.0%) - GRAPHITE only
   - Fusion: 0.1 GFLOPs (0.0%) - GRAPHITE only
 
 ### Performance Gap Analysis
@@ -167,8 +167,8 @@ The performance difference comes from:
 
 | Metric | Pipeline 1 (FullGrad) | GRAPHITE | Ratio |
 |--------|------------------------|----------|-------|
-| **Parameters** | 12.0M | 12.2M | 1.02x |
-| **FLOPs** | 2,194.9 GFLOPs | 2,195.2 GFLOPs | 1.00x |
+| **Parameters** | 12.0M | 12.2M | 1.01x |
+| **FLOPs** | 2,194.9 GFLOPs | 2,195.05 GFLOPs | 1.00x |
 | **Memory** | 1.39 GB | 2.08 GB | 1.5x |
 | **Time** | 186 ms | 510 ms | 2.7x |
 | **Efficiency** | 11.8 GFLOPs/ms | 4.3 GFLOPs/ms | 2.7x |
