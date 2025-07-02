@@ -41,9 +41,11 @@ def main():
     print()
     print("GRAPHITE Detailed Breakdown:")
     print("-" * 40)
-    print(f"Core inference:    {graphite_result['core_inference_ms']:>6.0f} ms")
-    print(f"Multi-level fusion:{graphite_result['multilevel_fusion_ms']:>6.0f} ms")
-    print(f"FullGrad CAM:      {graphite_result['fullgrad_cam_ms']:>6.0f} ms")
+    print(f"MIL inference:     {graphite_result['mil_inference_ms']:>6.0f} ms")
+    print(f"HierGAT inference: {graphite_result['hiergat_inference_ms']:>6.0f} ms")
+    print(f"MIL attention map: {graphite_result['mil_attention_map_ms']:>6.0f} ms")
+    print(f"FullGrad CAM map:  {graphite_result['fullgrad_cam_map_ms']:>6.0f} ms")
+    print(f"Multi-level fusion:{graphite_result['multilevel_fusion_map_ms']:>6.0f} ms")
     print(f"Final fusion:      {graphite_result['final_fusion_ms']:>6.0f} ms")
     print(f"Post-processing:   {graphite_result['post_processing_ms']:>6.0f} ms")
     print(f"Total:             {graphite_result['total_time_ms']:>6.0f} ms")
@@ -64,7 +66,8 @@ def main():
     print("- Use GRAPHITE for comprehensive research analysis")
     print("- GradCAM: Fastest processing, good for real-time")
     print("- FullGrad: Better quality, moderate speed")
-    print("- GRAPHITE: Always uses FullGrad for best fusion quality")
+    print("- GRAPHITE: Combines 3 attention maps (MIL + FullGrad + Multi-level)")
+    print("- GRAPHITE generates each attention map independently then fuses")
 
 
 if __name__ == "__main__":

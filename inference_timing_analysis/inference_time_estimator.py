@@ -67,52 +67,64 @@ class GraphiteInferenceEstimator:
         """
         Estimate Pipeline 2: GRAPHITE fusion time
         
-        Components: training_step_1 + training_step_2 + visualization_step_2
-        Uses FullGrad as a separate CAM computation required for fusion.
-        
-        Two-step fusion process:
-        1. Multi-level fusion (HierGAT levels → weighted combination)
-        2. Final fusion (multilevel + MIL + FullGrad → final heatmap)
+        Components:
+        1. MIL attention map (training_step_1)
+        2. CAM map using FullGrad (training_step_1) 
+        3. Multi-level Fusion map (training_step_1 + training_step_2)
+        4. Final Fusion (combine multilevel + MIL + FullGrad results)
+        5. Post-processing (visualization rendering)
         
         Returns:
             Dictionary with detailed timing breakdown
         """
-        # Core model inference (run once each)
-        mil_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
-        hiergat_time = (self.hiergat_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
+        # Base model inference time for training_step_1 (MIL)
+        mil_inference_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         
-        # Multi-level fusion step
-        level_generation = self.num_patches * 0.05  # Extract Level 0/1/2 maps
-        multilevel_fusion = self.num_patches * 0.08  # Gaussian smoothing + combination
+        # training_step_2 (HierGAT) inference time
+        hiergat_inference_time = (self.hiergat_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         
-        # Final fusion components
-        mil_attention = self.num_patches * 0.03  # Extract MIL attention
+        # 1. MIL attention map generation (using training_step_1 results)
+        mil_attention_map_time = self.num_patches * 0.03  # Extract attention from MIL model
         
-        # FullGrad CAM computation (completely separate computation for fusion)
-        # This is not an overhead factor but a complete separate FullGrad computation
-        fullgrad_base_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
-        fullgrad_cam_time = fullgrad_base_time * (self.cam_factors['fullgrad'] - 1.0)  # Additional gradient computation
+        # 2. CAM map using FullGrad (separate computation on training_step_1)
+        # This requires a complete FullGrad computation on the MIL model
+        fullgrad_cam_base = mil_inference_time  # Base inference needed for gradients
+        fullgrad_cam_gradient = mil_inference_time * (self.cam_factors['fullgrad'] - 1.0)  # Additional gradient computation
+        fullgrad_cam_map_time = fullgrad_cam_base + fullgrad_cam_gradient
         
-        final_fusion = self.num_patches * 0.1  # Combine 3 components (multilevel + MIL + FullGrad)
+        # 3. Multi-level Fusion map (training_step_1 + training_step_2)
+        # This uses both MIL and HierGAT results
+        multilevel_level_generation = self.num_patches * 0.05  # Extract HierGAT Level 0/1/2 maps
+        multilevel_fusion_processing = self.num_patches * 0.08  # Gaussian smoothing + weighted combination
+        multilevel_fusion_map_time = multilevel_level_generation + multilevel_fusion_processing
         
-        # Post-processing
-        post_processing = 100.0 + (self.num_patches * 0.2)  # Rendering
+        # 4. Final Fusion (combine the three maps: multilevel + MIL + FullGrad)
+        final_fusion_time = self.num_patches * 0.1  # Combine 3 attention maps
         
-        # Total time
-        total_time = (mil_time + hiergat_time + level_generation + multilevel_fusion + 
-                      mil_attention + fullgrad_cam_time + final_fusion + post_processing)
+        # 5. Post-processing (visualization rendering)
+        post_processing_time = 100.0 + (self.num_patches * 0.2)  # Rendering and visualization
+        
+        # Total time (note: MIL inference is used for both MIL attention and FullGrad CAM)
+        # HierGAT inference is used for multi-level fusion
+        total_time = (mil_inference_time +           # training_step_1 base inference
+                      hiergat_inference_time +       # training_step_2 base inference  
+                      mil_attention_map_time +       # MIL attention map generation
+                      fullgrad_cam_gradient +        # FullGrad gradient computation (additional to base)
+                      multilevel_fusion_map_time +   # Multi-level fusion processing
+                      final_fusion_time +            # Final fusion of 3 maps
+                      post_processing_time)          # Post-processing
         
         return {
             'total_time_ms': total_time,
-            'core_inference_ms': mil_time + hiergat_time,
-            'mil_step1_ms': mil_time,
-            'hiergat_step2_ms': hiergat_time,
-            'multilevel_fusion_ms': level_generation + multilevel_fusion,
-            'fullgrad_cam_ms': fullgrad_cam_time,
-            'final_fusion_ms': mil_attention + final_fusion,
-            'post_processing_ms': post_processing,
+            'mil_inference_ms': mil_inference_time,
+            'hiergat_inference_ms': hiergat_inference_time,
+            'mil_attention_map_ms': mil_attention_map_time,
+            'fullgrad_cam_map_ms': fullgrad_cam_gradient,  # Only the additional gradient computation
+            'multilevel_fusion_map_ms': multilevel_fusion_map_time,
+            'final_fusion_ms': final_fusion_time,
+            'post_processing_ms': post_processing_time,
             'cam_method': 'fullgrad',
-            'description': 'GRAPHITE fusion (all training steps + separate FullGrad CAM + two-step fusion)'
+            'description': 'GRAPHITE fusion: MIL attention + FullGrad CAM + Multi-level fusion → Final fusion'
         }
     
     def compare_pipelines(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
@@ -164,7 +176,7 @@ if __name__ == "__main__":
     # Detailed breakdown for GRAPHITE
     graphite_details = estimator.estimate_pipeline2_time()
     print(f"\nGRAPHITE Breakdown:")
-    print(f"  Core inference:           {graphite_details['core_inference_ms']:.0f} ms")
-    print(f"  Multi-level fusion:       {graphite_details['multilevel_fusion_ms']:.0f} ms")
+    print(f"  Core inference:           {graphite_details['mil_inference_ms']:.0f} ms")
+    print(f"  Multi-level fusion:       {graphite_details['multilevel_fusion_map_ms']:.0f} ms")
     print(f"  Final fusion:             {graphite_details['final_fusion_ms']:.0f} ms")
     print(f"  Post-processing:          {graphite_details['post_processing_ms']:.0f} ms") 

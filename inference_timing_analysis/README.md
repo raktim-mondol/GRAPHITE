@@ -31,8 +31,9 @@ print(f"Pipeline 2: {comparison['pipeline2_ms']:.0f}ms")
 | **GRAPHITE** (FullGrad) | **510 ms** | Research analysis |
 
 GRAPHITE is **2.7-5.7x more complex** but provides comprehensive multi-level analysis.
-**Pipeline 1 CAM Methods**: GradCAM (fast), FullGrad (better quality)
-**GRAPHITE**: Uses separate FullGrad computation (112ms) for optimal fusion quality
+**Pipeline 1 CAM Methods**: GradCAM (fast), FullGrad (better quality)  
+**GRAPHITE**: Generates 3 independent attention maps then fuses them
+- MIL attention map (15ms) + FullGrad CAM map (112ms) + Multi-level fusion map (63ms)
 
 ## Run Test
 
