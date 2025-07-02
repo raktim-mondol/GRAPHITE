@@ -3,126 +3,177 @@
 ## Overview
 This analysis provides inference time estimates for the GRAPHITE histopathology visualization pipeline. Fixed configuration: **5040×5040 images, V100 GPU, FP32 precision**.
 
+## Detailed Architecture Analysis
+
+### ResNet18 Parameter Breakdown (11.2M parameters)
+| Component | Parameters | Calculation |
+|-----------|------------|-------------|
+| Conv1 + BN | 9,536 | 3×64×7×7 + 64×2 |
+| Layer1 (2 blocks) | 147,968 | 2×(64×64×3×3 + 64×64×3×3 + 64×4) |
+| Layer2 (2 blocks) | 525,568 | Downsample block + regular block |
+| Layer3 (2 blocks) | 2,099,712 | Downsample block + regular block |
+| Layer4 (2 blocks) | 8,393,728 | Downsample block + regular block |
+| **Total** | **11,176,512** | **11.2M parameters** |
+
+### MIL Classifier Parameter Breakdown (0.9M parameters)
+| Component | Parameters | Calculation |
+|-----------|------------|-------------|
+| Patch Projector | 329,600 | 512×512+512 + 512×2 + 512×128+128 + 128×2 |
+| Attention | 66,049 | 512×128+128 + 128×2 + 128×1+1 |
+| Patient Projector | 329,600 | Same as patch projector |
+| Classifier | 132,097 | 512×256+256 + 256×2 + 256×1+1 |
+| Patient LayerNorm | 1,024 | 512×2 |
+| **Total** | **858,370** | **0.9M parameters** |
+
+### HierGAT Parameter Breakdown (0.2M parameters)
+| Component | Parameters | Calculation |
+|-----------|------------|-------------|
+| GAT Layers (3 layers) | 102,912 | 2×GATConv + LayerNorm per layer |
+| ScaleWiseAttention | 33,926 | 3 level attention + cross-scale |
+| Projection Head | 33,280 | 128×128+128 + 128×2 + 128×128+128 |
+| **Total** | **170,118** | **0.2M parameters** |
+
+## Detailed FLOP Analysis
+
+### ResNet18 FLOP Breakdown (877.8 GFLOPs for 484 patches)
+| Layer | FLOPs per patch | Total FLOPs (484 patches) |
+|-------|-----------------|---------------------------|
+| Conv1 | 118,013,952 | 57.1 GFLOPs |
+| Layer1 | 462,422,016 | 223.7 GFLOPs |
+| Layer2 | 411,041,792 | 199.0 GFLOPs |
+| Layer3 | 411,041,792 | 199.0 GFLOPs |
+| Layer4 | 411,041,792 | 199.0 GFLOPs |
+| **Total** | **1,813,561,344** | **877.8 GFLOPs** |
+
+### MIL Classifier FLOP Breakdown (0.2 GFLOPs)
+| Component | FLOPs | Calculation |
+|-----------|-------|-------------|
+| Patch Projector | 158,597,120 | 484×(512×512 + 512×128) |
+| Attention | 31,781,860 | 484×(512×128 + 128×1) + softmax |
+| Weighted Aggregation | 247,808 | 484×512 |
+| Patient Projector | 327,680 | 512×512 + 512×128 |
+| Classifier | 131,328 | 512×256 + 256×1 |
+| **Total** | **191,085,796** | **0.2 GFLOPs** |
+
+### HierGAT FLOP Breakdown (0.2 GFLOPs)
+| Component | FLOPs | Description |
+|-----------|-------|-------------|
+| GAT Layers | 191,803,392 | Message passing + attention (3 layers) |
+| Scale Attention | 4,012,800 | Level-specific + cross-scale attention |
+| Projection Head | 32,768 | 128×128 + 128×128 |
+| **Total** | **195,848,960** | **0.2 GFLOPs** |
+
 ## Pipeline Specifications
 
 ### Pipeline 1: GradCAM Visualization
 - **Components**: training_step_1 + visualization_step_1
-- **Models**: ResNet18 backbone + MIL classifier 
-- **Parameters**: 12.5M total (11.2M ResNet18 + 1.3M MIL classifier)
-- **FLOPs**: 876-2,189 GFLOPs (depending on CAM method)
-- **Memory**: 0.99-1.39 GB
-- **Inference Time**: 89ms (GradCAM) or 186ms (FullGrad)
+- **Models**: ResNet18 (11.2M) + MIL classifier (0.9M) 
+- **Total Parameters**: 12.0M
+- **Base FLOPs**: 878.0 GFLOPs
+- **With CAM Methods**:
+  - GradCAM (1.2x): 1,053.5 GFLOPs, 89ms
+  - FullGrad (2.5x): 2,194.9 GFLOPs, 186ms
 
 ### Pipeline 2: GRAPHITE Fusion
 - **Components**: training_step_1 + training_step_2 + visualization_step_2
-- **Models**: ResNet18 + MIL classifier + HierGAT
-- **Parameters**: 15.3M total (11.2M ResNet18 + 1.3M MIL + 2.8M HierGAT)
-- **FLOPs**: 2,207 GFLOPs (876 MIL + 18 HierGAT + 1,313 FullGrad + 0.1 fusion)
-- **Memory**: 2.08 GB
+- **Models**: ResNet18 (11.2M) + MIL classifier (0.9M) + HierGAT (0.2M)
+- **Total Parameters**: 12.2M
+- **Base FLOPs**: 878.2 GFLOPs (MIL + HierGAT)
+- **Additional FLOPs**:
+  - FullGrad computation: 1,316.9 GFLOPs
+  - Fusion processing: 0.1 GFLOPs
+- **Total FLOPs**: 2,195.2 GFLOPs
 - **Inference Time**: 510ms (fixed FullGrad)
 
-## Complexity Comparison
+## Complexity Analysis
 
-### Computational Ratios (GRAPHITE vs Pipeline 1 with FullGrad)
-- **Parameters**: 1.2x more (15.3M vs 12.5M)
-- **FLOPs**: 1.0x similar (2,207 vs 2,189 GFLOPs)
-- **Memory**: 1.5x more (2.08 vs 1.39 GB)
-- **Time**: 2.7x slower (510ms vs 186ms)
+### Parameter Comparison (GRAPHITE vs Pipeline 1 FullGrad)
+- **Total Parameters**: 12.2M vs 12.0M = **1.02x more**
+- **Additional HierGAT**: 170K parameters (1.4% increase)
+- **Parameter efficiency**: Very similar parameter count
 
-### Efficiency Metrics
-- **Pipeline 1**: 11.8 GFLOPs/ms
-- **GRAPHITE**: 4.3 GFLOPs/ms  
-- **Efficiency ratio**: 2.7x faster for Pipeline 1
+### FLOP Comparison (GRAPHITE vs Pipeline 1 FullGrad)
+- **Total FLOPs**: 2,195.2 vs 2,194.9 GFLOPs = **1.00x similar**
+- **FLOP distribution**:
+  - ResNet18: 877.8 GFLOPs (40.0%) - same for both
+  - MIL Classifier: 0.2 GFLOPs (0.0%) - same for both
+  - FullGrad: 1,316.9 GFLOPs (60.0%) - same for both
+  - HierGAT: 0.2 GFLOPs (0.0%) - GRAPHITE only
+  - Fusion: 0.1 GFLOPs (0.0%) - GRAPHITE only
 
-## Detailed Results
+### Performance Gap Analysis
+**Why GRAPHITE is 2.7x slower despite similar parameters/FLOPs:**
 
-### Pipeline 1 Performance
-| CAM Method | Time (ms) | FLOPs (GFLOPs) | Memory (GB) |
-|------------|-----------|----------------|-------------|
-| GradCAM    | 89        | 876            | 0.99        |
-| FullGrad   | 186       | 2,189          | 1.39        |
+1. **Sequential Processing**: GRAPHITE requires 5 sequential stages vs Pipeline 1's single stage
+2. **Memory Access Patterns**: Multiple attention map generations require different memory access patterns
+3. **GPU Utilization**: Sequential stages reduce GPU parallelization efficiency
+4. **Intermediate Storage**: Need to store 3 separate attention maps simultaneously
+5. **Post-processing Overhead**: Final fusion and visualization rendering (38.6% of total time)
 
-### GRAPHITE Breakdown (510ms total)
-| Component              | Time (ms) | Percentage | Description |
-|------------------------|-----------|------------|-------------|
-| MIL Inference          | 74        | 14.5%      | training_step_1 base model |
-| HierGAT Inference      | 2         | 0.4%       | training_step_2 base model |
-| MIL Attention Map      | 15        | 2.9%       | Extract MIL attention |
-| FullGrad CAM Map       | 112       | 22.0%      | Gradient-based attention |
-| Multi-level Fusion Map | 63        | 12.4%      | HierGAT Level 0/1/2 fusion |
-| Final Fusion           | 48        | 9.4%       | Combine 3 attention maps |
-| Post-processing        | 197       | 38.6%      | Visualization rendering |
+## Detailed Timing Breakdown
 
-### FLOPs Distribution (GRAPHITE)
-| Component     | FLOPs (GFLOPs) | Percentage |
-|---------------|----------------|------------|
-| MIL base      | 876            | 39.7%      |
-| HierGAT       | 18             | 0.8%       |
-| FullGrad CAM  | 1,313          | 59.5%      |
-| Fusion        | 0.1            | 0.0%       |
-| **Total**     | **2,207**      | **100%**   |
+### GRAPHITE Component Analysis (510ms total)
+| Component | Time (ms) | FLOPs (GFLOPs) | Efficiency (GFLOPs/ms) |
+|-----------|-----------|----------------|------------------------|
+| MIL Inference | 74 | 878.0 | 11.9 |
+| HierGAT Inference | 2 | 0.2 | 0.1 |
+| MIL Attention Map | 15 | - | - |
+| FullGrad CAM Map | 112 | 1,316.9 | 11.8 |
+| Multi-level Fusion | 63 | 0.1 | 0.002 |
+| Final Fusion | 48 | - | - |
+| Post-processing | 197 | - | - |
 
-### Memory Usage Breakdown
-| Pipeline    | Model (GB) | Features (GB) | Gradients (GB) | Total (GB) |
-|-------------|------------|---------------|----------------|------------|
-| Pipeline 1  | 0.05       | 0.99          | 0.40           | 1.39       |
-| GRAPHITE    | 0.06       | 1.25          | 0.77           | 2.08       |
-
-## Performance Insights
-
-### Why GRAPHITE is 2.7x Slower Despite Similar FLOPs
-1. **Multiple Attention Maps**: Generates 3 independent maps vs 1
-2. **Sequential Processing**: Each map requires separate computation passes
-3. **Memory Overhead**: 1.5x more memory leads to reduced GPU efficiency
-4. **Fusion Complexity**: Final fusion of 3 maps adds processing overhead
-5. **Post-processing**: Heavier visualization rendering (38.6% of total time)
-
-### Computational Efficiency Analysis
-- **Similar FLOPs**: Both pipelines have comparable computational requirements
-- **Different Memory Patterns**: GRAPHITE uses 1.5x more memory
-- **Processing Complexity**: GRAPHITE requires multiple model outputs and fusion steps
-- **GPU Utilization**: Pipeline 1 achieves better GPU efficiency due to simpler memory access patterns
+### Efficiency Analysis
+- **High-efficiency components**: MIL/ResNet18 inference (11.8-11.9 GFLOPs/ms)
+- **Low-efficiency components**: Fusion and post-processing (memory-bound operations)
+- **Overall Pipeline 1 efficiency**: 11.8 GFLOPs/ms
+- **Overall GRAPHITE efficiency**: 4.3 GFLOPs/ms
 
 ## Architecture Justification
 
-### Pipeline 1: Optimized for Speed
-- **Single model inference**: training_step_1 only
-- **Direct CAM computation**: Immediate gradient-based attention
-- **Minimal memory overhead**: Simple feature storage
-- **Efficient for real-time processing**
+### Computational Complexity
+The detailed analysis shows that GRAPHITE's 2.7x slower performance is **NOT** due to higher computational requirements:
+- Similar parameter count (1.02x difference)
+- Identical FLOP count (1.00x difference)
+- Same core computational kernels (ResNet18 + MIL)
 
-### GRAPHITE: Comprehensive Analysis
-- **Multi-model fusion**: Combines MIL + HierGAT insights  
-- **Three attention sources**: MIL attention + FullGrad CAM + Multi-level fusion
-- **Enhanced interpretability**: Multiple complementary visualization methods
-- **Research-oriented**: Comprehensive but computationally intensive
+### Performance Bottlenecks
+The performance difference comes from:
+1. **Pipeline Architecture**: Sequential vs parallel processing
+2. **Memory Efficiency**: Multiple intermediate results storage
+3. **Fusion Overhead**: Non-parallelizable attention map combination
+4. **Visualization Processing**: Extensive post-processing pipeline
+
+### Trade-off Analysis
+- **Pipeline 1**: Optimized for speed, single attention source
+- **GRAPHITE**: Comprehensive analysis, multiple complementary attention maps
+- **Computational cost**: Minimal additional compute for significant analytical enhancement
 
 ## Recommendations
 
 ### Use Pipeline 1 When:
 - Real-time processing required (<200ms)
 - Single attention visualization sufficient
-- Computational resources limited
+- Resource-constrained environments
 - Quick diagnostic feedback needed
 
 ### Use GRAPHITE When:
-- Comprehensive analysis required
+- Research-grade analysis required
 - Multiple attention perspectives valuable
-- Research or detailed clinical analysis
 - Computational resources available
-- Quality over speed priority
+- Quality and comprehensiveness prioritized over speed
 
-## Technical Specifications Summary
+## Technical Summary
 
-| Metric                  | Pipeline 1 (FullGrad) | GRAPHITE | Ratio |
-|-------------------------|------------------------|----------|-------|
-| **Parameters (M)**      | 12.5                  | 15.3     | 1.2x  |
-| **FLOPs (GFLOPs)**     | 2,189                 | 2,207    | 1.0x  |
-| **Memory (GB)**        | 1.39                  | 2.08     | 1.5x  |
-| **Time (ms)**          | 186                   | 510      | 2.7x  |
-| **Efficiency (GFLOPs/ms)** | 11.8             | 4.3      | 2.7x  |
+| Metric | Pipeline 1 (FullGrad) | GRAPHITE | Ratio |
+|--------|------------------------|----------|-------|
+| **Parameters** | 12.0M | 12.2M | 1.02x |
+| **FLOPs** | 2,194.9 GFLOPs | 2,195.2 GFLOPs | 1.00x |
+| **Memory** | 1.39 GB | 2.08 GB | 1.5x |
+| **Time** | 186 ms | 510 ms | 2.7x |
+| **Efficiency** | 11.8 GFLOPs/ms | 4.3 GFLOPs/ms | 2.7x |
 
-The computational analysis clearly justifies the 2.7x timing difference between pipelines, primarily due to GRAPHITE's multi-map architecture requiring sequential processing and higher memory overhead despite similar total FLOPs.
+**Key Insight**: The 2.7x performance difference is primarily due to architectural and memory efficiency factors, not computational complexity. GRAPHITE provides comprehensive multi-modal attention analysis at the cost of sequential processing overhead.
 
 ```python
 from inference_time_estimator import create_estimator
