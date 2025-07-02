@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""
+Simple test script for GRAPHITE inference time estimation.
+Tests both pipelines with different CAM methods.
+"""
+
+from inference_time_estimator import create_estimator
+
+
+def main():
+    print("GRAPHITE Inference Time Analysis")
+    print("=" * 50)
+    print("Configuration: 5040×5040 images, V100 GPU, FP32")
+    print()
+    
+    estimator = create_estimator()
+    
+    # Test different CAM methods
+    cam_methods = ['gradcam', 'fullgrad', 'hirescam', 'scorecam']
+    
+    print("CAM Method Comparison (Pipeline 1):")
+    print("-" * 40)
+    for cam in cam_methods:
+        p1_result = estimator.estimate_pipeline1_time(cam)
+        print(f"{cam:>10}: {p1_result['total_time_ms']:>6.0f} ms")
+    
+    print()
+    print("Pipeline Comparison (FullGrad):")
+    print("-" * 40)
+    
+    # Detailed comparison with FullGrad
+    comparison = estimator.compare_pipelines('fullgrad')
+    p1_result = estimator.estimate_pipeline1_time('fullgrad')
+    p2_result = estimator.estimate_pipeline2_time('fullgrad')
+    
+    print(f"Pipeline 1: {comparison['pipeline1_ms']:>6.0f} ms (GradCAM)")
+    print(f"Pipeline 2: {comparison['pipeline2_ms']:>6.0f} ms (Fusion)")
+    print(f"Ratio:      {comparison['complexity_ratio']:>6.1f}x more complex")
+    
+    print()
+    print("Pipeline 2 Detailed Breakdown:")
+    print("-" * 40)
+    print(f"Core inference:    {p2_result['core_inference_ms']:>6.0f} ms")
+    print(f"Multi-level fusion:{p2_result['multilevel_fusion_ms']:>6.0f} ms")
+    print(f"Final fusion:      {p2_result['final_fusion_ms']:>6.0f} ms")
+    print(f"Post-processing:   {p2_result['post_processing_ms']:>6.0f} ms")
+    print(f"Total:             {p2_result['total_time_ms']:>6.0f} ms")
+    
+    print()
+    print("Recommendations:")
+    print("- Use Pipeline 1 for real-time processing (<100ms)")
+    print("- Use Pipeline 2 for comprehensive research analysis")
+    print("- FullGrad provides good balance of quality and speed")
+
+
+if __name__ == "__main__":
+    main() 

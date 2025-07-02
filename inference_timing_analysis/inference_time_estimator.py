@@ -1,238 +1,164 @@
 """
 GRAPHITE Inference Time Estimator
 
-Streamlined module for estimating inference times for GRAPHITE visualization pipeline:
-1. GradCAM visualization (various CAM methods)  
-2. Saliency map fusion visualization
+Simple tool for estimating inference times for GRAPHITE visualization pipeline.
+Fixed configuration: 5040×5040 images, V100 GPU, FP32 precision.
 
-Based on model architecture analysis, FLOPS calculation, and GPU specifications.
+Two pipelines:
+1. Pipeline 1: GradCAM visualization (training_step_1 + visualization_step_1)
+2. Pipeline 2: Fusion visualization (training_step_1 + training_step_2 + visualization_step_2)
 """
 
-import numpy as np
-from typing import Dict, Tuple
-from dataclasses import dataclass
+from typing import Dict
 
 
-@dataclass
-class GPUSpecs:
-    """GPU specifications for inference time calculation"""
-    name: str
-    memory_bandwidth: float    # GB/s
-    memory_size: float        # GB
-    fp32_tflops: float        # TFLOPs for FP32
-    fp16_tflops: float        # TFLOPs for FP16
-
-
-class InferenceTimeEstimator:
-    """Streamlined inference time estimator for GRAPHITE visualization pipeline"""
+class GraphiteInferenceEstimator:
+    """Simple inference time estimator for GRAPHITE pipeline"""
     
-    def __init__(self, gpu_name: str = 'V100', precision: str = 'fp32'):
-        """
-        Initialize the inference time estimator
+    def __init__(self):
+        """Initialize estimator with fixed V100 GPU and 5040x5040 image specs"""
+        # Fixed configuration
+        self.image_size = (5040, 5040)
+        self.num_patches = 484  # 22x22 patches of 224x224
+        self.gpu_tflops = 15.7  # V100 FP32 performance
+        self.efficiency = 0.75  # Realistic GPU utilization
         
-        Args:
-            gpu_name: GPU model name (default: 'V100')
-            precision: Computation precision ('fp32' or 'fp16')
-        """
-        self.gpu_name = gpu_name
-        self.precision = precision
+        # Model specifications (based on actual GRAPHITE architecture)
+        self.mil_flops = 875.7e9  # GFLOPs for MIL model (ResNet18 + components)
+        self.hiergat_flops = 18.3e9  # GFLOPs for HierGAT
         
-        # GPU specifications
-        self.gpu_specs = {
-            'V100': GPUSpecs(
-                name='NVIDIA V100',
-                memory_bandwidth=900.0,     # GB/s
-                memory_size=32.0,          # GB
-                fp32_tflops=15.7,          # TFLOPs
-                fp16_tflops=31.4           # TFLOPs
-            )
-        }[gpu_name]
-        
-        # CAM method computational overhead factors
-        self.cam_overhead_factors = {
-            'gradcam': 1.2,      # Gradient computation overhead
-            'hirescam': 1.8,     # Higher resolution processing
-            'scorecam': 15.0,    # Multiple forward passes
-            'gradcampp': 1.3,    # Enhanced gradient computation
-            'ablationcam': 25.0, # Multiple ablation passes
-            'xgradcam': 1.4,     # Extended gradient computation
-            'eigencam': 2.0,     # Eigenvalue computation
-            'fullgrad': 2.5      # Full gradient computation
+        # CAM method overhead factors
+        self.cam_factors = {
+            'gradcam': 1.2,
+            'fullgrad': 2.5,
+            'hirescam': 1.8,
+            'scorecam': 15.0
         }
     
-    def _calculate_patches(self, image_shape: Tuple[int, int], patch_size: int = 224) -> int:
-        """Calculate number of patches for given image shape"""
-        height, width = image_shape
-        patches_h = height // patch_size
-        patches_w = width // patch_size
-        return patches_h * patches_w
-    
-    def _estimate_model_flops(self, num_patches: int) -> Dict[str, float]:
-        """Estimate FLOPs for model components"""
-        # ResNet18 backbone: ~1.8 GFLOPs per patch
-        resnet_flops = num_patches * 1.8e9
-        
-        # MIL components
-        mil_flops = num_patches * 1.0e6  # Projectors + attention
-        
-        # HierGAT components (minimal for small patch counts)
-        hiergat_flops = max(num_patches * 0.1e6, 1.0e6)
-        
-        return {
-            'resnet_backbone': resnet_flops,
-            'mil_components': mil_flops,
-            'hiergat_components': hiergat_flops,
-            'total': resnet_flops + mil_flops + hiergat_flops
-        }
-    
-    def _estimate_memory_usage(self, num_patches: int) -> float:
-        """Estimate GPU memory usage in GB"""
-        # Base model parameters: ~23M parameters × 4 bytes = 92MB
-        model_memory = 0.092
-        
-        # Patch features: num_patches × 512 features × 4 bytes
-        feature_memory = num_patches * 512 * 4 / 1e9
-        
-        # Gradients and intermediate activations (2x feature memory)
-        activation_memory = feature_memory * 2
-        
-        # Total with overhead
-        total_memory = (model_memory + feature_memory + activation_memory) * 1.2
-        
-        return total_memory
-    
-    def estimate_cam_visualization_time(self, image_shape: Tuple[int, int], 
-                                       cam_method: str = 'fullgrad') -> Dict[str, float]:
+    def estimate_pipeline1_time(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
         """
-        Estimate GradCAM visualization time
+        Estimate Pipeline 1: GradCAM visualization time
+        
+        Components: training_step_1 + visualization_step_1
         
         Args:
-            image_shape: (height, width) of input image
-            cam_method: CAM method to use
+            cam_method: CAM method ('gradcam', 'fullgrad', 'hirescam', 'scorecam')
             
         Returns:
-            Dictionary with timing estimates and metadata
+            Dictionary with timing results
         """
-        num_patches = self._calculate_patches(image_shape)
-        flops = self._estimate_model_flops(num_patches)
-        memory_gb = self._estimate_memory_usage(num_patches)
+        # Base MIL inference time
+        base_time_ms = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         
-        # Base inference time from FLOPS
-        gpu_tflops = self.gpu_specs.fp32_tflops if self.precision == 'fp32' else self.gpu_specs.fp16_tflops
-        base_time_ms = (flops['total'] / (gpu_tflops * 1e12)) * 1000
-        
-        # Apply CAM method overhead
-        cam_overhead = self.cam_overhead_factors.get(cam_method, 2.0)
-        cam_time_ms = base_time_ms * cam_overhead
-        
-        # Apply GPU utilization efficiency (75-85%)
-        efficiency = 0.80
-        cam_time_ms /= efficiency
+        # Apply CAM overhead
+        cam_factor = self.cam_factors.get(cam_method, 2.5)
+        total_time_ms = base_time_ms * cam_factor
         
         return {
-            'inference_time_ms': cam_time_ms,
-            'base_time_ms': base_time_ms,
+            'total_time_ms': total_time_ms,
+            'base_inference_ms': base_time_ms,
+            'cam_overhead_ms': total_time_ms - base_time_ms,
             'cam_method': cam_method,
-            'cam_overhead': cam_overhead,
-            'num_patches': num_patches,
-            'total_flops': flops['total'],
-            'estimated_memory_gb': memory_gb,
-            'gpu_utilization': f"{efficiency*100:.0f}%"
+            'description': 'GradCAM visualization (training_step_1 + visualization_step_1)'
         }
     
-    def estimate_fusion_visualization_time(self, image_shape: Tuple[int, int],
-                                          cam_method: str = 'fullgrad',
-                                          fusion_method: str = 'confidence') -> Dict[str, float]:
+    def estimate_pipeline2_time(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
         """
-        Estimate complete fusion visualization pipeline time
+        Estimate Pipeline 2: Complete GRAPHITE fusion time
+        
+        Components: training_step_1 + training_step_2 + visualization_step_2
+        Two-step fusion process:
+        1. Multi-level fusion (HierGAT levels → weighted combination)
+        2. Final fusion (multilevel + MIL + CAM → final heatmap)
         
         Args:
-            image_shape: (height, width) of input image
-            cam_method: CAM method to use
-            fusion_method: Fusion method to use
+            cam_method: CAM method for final fusion
             
         Returns:
             Dictionary with detailed timing breakdown
         """
-        num_patches = self._calculate_patches(image_shape)
-        flops = self._estimate_model_flops(num_patches)
-        memory_gb = self._estimate_memory_usage(num_patches)
+        # Core model inference (run once each)
+        mil_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
+        hiergat_time = (self.hiergat_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         
-        # Component timings
-        gpu_tflops = self.gpu_specs.fp32_tflops if self.precision == 'fp32' else self.gpu_specs.fp16_tflops
-        efficiency = 0.75  # Lower efficiency for full pipeline
+        # Multi-level fusion step
+        level_generation = self.num_patches * 0.05  # Extract Level 0/1/2 maps
+        multilevel_fusion = self.num_patches * 0.08  # Gaussian smoothing + combination
         
-        # MIL Step1 inference
-        mil_step1_time = (flops['resnet_backbone'] + flops['mil_components']) / (gpu_tflops * 1e12 * efficiency) * 1000
+        # Final fusion components
+        mil_attention = self.num_patches * 0.03  # Extract MIL attention
+        cam_factor = self.cam_factors.get(cam_method, 2.5)
+        cam_generation = mil_time * (cam_factor - 1.0)  # Gradient computation
+        final_fusion = self.num_patches * 0.1  # Combine 3 components
         
-        # HierGAT inference (Step2)
-        hiergat_time = flops['hiergat_components'] / (gpu_tflops * 1e12 * efficiency) * 1000
+        # Post-processing
+        post_processing = 100.0 + (self.num_patches * 0.2)  # Rendering
         
-        # MIL Step2 inference (visualization_step_2)
-        mil_step2_time = mil_step1_time  # Similar complexity
-        
-        # CAM visualization
-        cam_overhead = self.cam_overhead_factors.get(cam_method, 2.0)
-        cam_time = mil_step2_time * cam_overhead
-        
-        # Fusion processing overhead
-        fusion_overhead = {'optimal': 1.2, 'confidence': 1.0, 'adaptive': 1.1}.get(fusion_method, 1.0)
-        fusion_time = num_patches * 0.12  # Fixed per-patch processing time
-        
-        # Post-processing (rendering, smoothing, etc.)
-        post_processing_time = 100.0 + (num_patches * 0.2)  # Base + per-patch
-        
-        # Total pipeline time
-        total_time = mil_step1_time + hiergat_time + mil_step2_time + cam_time + fusion_time + post_processing_time
+        # Total time
+        total_time = (mil_time + hiergat_time + level_generation + multilevel_fusion + 
+                      mil_attention + cam_generation + final_fusion + post_processing)
         
         return {
             'total_time_ms': total_time,
-            'component_times': {
-                'mil_step1_inference': mil_step1_time,
-                'hiergat_inference': hiergat_time,
-                'mil_step2_inference': mil_step2_time,
-                'cam_visualization': cam_time,
-                'fusion_processing': fusion_time,
-                'post_processing': post_processing_time
-            },
+            'core_inference_ms': mil_time + hiergat_time,
+            'mil_step1_ms': mil_time,
+            'hiergat_step2_ms': hiergat_time,
+            'multilevel_fusion_ms': level_generation + multilevel_fusion,
+            'final_fusion_ms': mil_attention + cam_generation + final_fusion,
+            'post_processing_ms': post_processing,
             'cam_method': cam_method,
-            'fusion_method': fusion_method,
-            'num_patches': num_patches,
-            'total_flops': flops['total'],
-            'estimated_memory_gb': memory_gb,
-            'pipeline': 'training_step_1 + training_step_2 + visualization_step_2'
+            'description': 'Complete GRAPHITE fusion (all training steps + two-step fusion)'
+        }
+    
+    def compare_pipelines(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
+        """
+        Compare both pipelines side by side
+        
+        Args:
+            cam_method: CAM method to use for comparison
+            
+        Returns:
+            Dictionary with comparison results
+        """
+        p1_results = self.estimate_pipeline1_time(cam_method)
+        p2_results = self.estimate_pipeline2_time(cam_method)
+        
+        complexity_ratio = p2_results['total_time_ms'] / p1_results['total_time_ms']
+        
+        return {
+            'pipeline1_ms': p1_results['total_time_ms'],
+            'pipeline2_ms': p2_results['total_time_ms'],
+            'complexity_ratio': complexity_ratio,
+            'speed_advantage_p1': f"{complexity_ratio:.1f}x faster",
+            'cam_method': cam_method,
+            'summary': f"Pipeline 1: {p1_results['total_time_ms']:.0f}ms, Pipeline 2: {p2_results['total_time_ms']:.0f}ms"
         }
 
 
-def create_inference_estimator(gpu_name: str = 'V100', precision: str = 'fp32') -> InferenceTimeEstimator:
-    """
-    Factory function to create an inference time estimator
-    
-    Args:
-        gpu_name: GPU model name
-        precision: Computation precision ('fp32' or 'fp16')
-    """
-    return InferenceTimeEstimator(gpu_name, precision)
+# Simple factory function
+def create_estimator() -> GraphiteInferenceEstimator:
+    """Create a GRAPHITE inference estimator"""
+    return GraphiteInferenceEstimator()
 
 
 # Example usage
 if __name__ == "__main__":
-    # Create estimator for V100 GPU
-    estimator = create_inference_estimator('V100', 'fp32')
+    estimator = create_estimator()
     
-    # Test 5040x5040 image
-    image_size = (5040, 5040)
+    print("GRAPHITE Inference Time Estimates (5040×5040, V100, FP32)")
+    print("=" * 60)
     
-    # Estimate GradCAM time
-    gradcam_timing = estimator.estimate_cam_visualization_time(image_size, 'fullgrad')
-    print(f"FullGrad CAM: {gradcam_timing['inference_time_ms']:.1f} ms ({gradcam_timing['num_patches']} patches)")
+    # Compare pipelines with FullGrad
+    comparison = estimator.compare_pipelines('fullgrad')
+    print(f"\nPipeline Comparison (FullGrad):")
+    print(f"  Pipeline 1 (GradCAM):     {comparison['pipeline1_ms']:.0f} ms")
+    print(f"  Pipeline 2 (Fusion):      {comparison['pipeline2_ms']:.0f} ms")
+    print(f"  Complexity ratio:         {comparison['complexity_ratio']:.1f}x")
     
-    # Estimate fusion time
-    fusion_timing = estimator.estimate_fusion_visualization_time(image_size, 'fullgrad', 'confidence')
-    print(f"Fusion Pipeline: {fusion_timing['total_time_ms']:.1f} ms")
-    
-    # Component breakdown
-    print("\nComponent Breakdown:")
-    for component, time_ms in fusion_timing['component_times'].items():
-        percentage = (time_ms / fusion_timing['total_time_ms']) * 100
-        print(f"  {component:20}: {time_ms:6.1f} ms ({percentage:4.1f}%)") 
+    # Detailed breakdown for Pipeline 2
+    p2_details = estimator.estimate_pipeline2_time('fullgrad')
+    print(f"\nPipeline 2 Breakdown:")
+    print(f"  Core inference:           {p2_details['core_inference_ms']:.0f} ms")
+    print(f"  Multi-level fusion:       {p2_details['multilevel_fusion_ms']:.0f} ms")
+    print(f"  Final fusion:             {p2_details['final_fusion_ms']:.0f} ms")
+    print(f"  Post-processing:          {p2_details['post_processing_ms']:.0f} ms") 
