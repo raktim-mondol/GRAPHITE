@@ -26,7 +26,7 @@ Simple analysis for GRAPHITE visualization pipeline performance.
 | Pipeline | Time | CAM Method | Description |
 |----------|------|------------|-------------|
 | **Pipeline 1** | **186 ms** | FullGrad | GradCAM visualization |
-| **GRAPHITE** | **510 ms** | FullGrad | Complete GRAPHITE fusion |
+| **GRAPHITE** | **510 ms** | FullGrad (separate) | Complete GRAPHITE fusion |
 | **Complexity Ratio** | **2.7x** | - | GRAPHITE is 2.7x more complex |
 
 ### CAM Method Comparison (Pipeline 1)
@@ -36,13 +36,14 @@ Simple analysis for GRAPHITE visualization pipeline performance.
 | GradCAM | 89 ms | 1.2x | Fast processing, real-time |
 | FullGrad | 186 ms | 2.5x | Better quality, moderate speed |
 
-### GRAPHITE Breakdown (FullGrad)
+### GRAPHITE Breakdown (with separate FullGrad CAM)
 
 | Component | Time | Percentage | Description |
 |-----------|------|------------|-------------|
 | Core Inference | 76 ms | 14.9% | MIL (74ms) + HierGAT (2ms) |
-| Multi-level Fusion | 63 ms | 12.3% | Level extraction + combination |
-| Final Fusion | 174 ms | 34.1% | MIL + FullGrad + multilevel fusion |
+| Multi-level Fusion | 63 ms | 12.4% | Level extraction + combination |
+| FullGrad CAM | 112 ms | 22.0% | Separate FullGrad computation for fusion |
+| Final Fusion | 63 ms | 12.4% | Combine multilevel + MIL + FullGrad results |
 | Post-processing | 197 ms | 38.6% | Visualization rendering |
 | **Total** | **510 ms** | **100%** | Complete GRAPHITE pipeline |
 
@@ -50,13 +51,14 @@ Simple analysis for GRAPHITE visualization pipeline performance.
 
 ### Performance Distribution
 - **Pipeline 1**: 40% model inference + 60% CAM processing
-- **GRAPHITE**: 15% model inference + 46% fusion + 39% post-processing
+- **GRAPHITE**: 15% model inference + 22% FullGrad CAM + 25% fusion + 39% post-processing
 
 ### Bottlenecks
 1. **Post-processing (39%)**: Visualization rendering - largest optimization opportunity
-2. **CAM generation (22%)**: Gradient computation overhead
-3. **Final fusion (34%)**: Three-component integration
-4. **Model inference (15%)**: Efficient core computation
+2. **FullGrad CAM (22%)**: Separate gradient computation for fusion
+3. **Multi-level fusion (12%)**: HierGAT level processing
+4. **Final fusion (12%)**: Three-component integration
+5. **Model inference (15%)**: Efficient core computation
 
 ### Architecture Advantages
 - **Pipeline 1**: 2.7x faster, simple, real-time capable

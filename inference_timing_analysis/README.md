@@ -32,7 +32,7 @@ print(f"Pipeline 2: {comparison['pipeline2_ms']:.0f}ms")
 
 GRAPHITE is **2.7-5.7x more complex** but provides comprehensive multi-level analysis.
 **Pipeline 1 CAM Methods**: GradCAM (fast), FullGrad (better quality)
-**GRAPHITE**: Fixed FullGrad for optimal fusion quality
+**GRAPHITE**: Uses separate FullGrad computation (112ms) for optimal fusion quality
 
 ## Run Test
 

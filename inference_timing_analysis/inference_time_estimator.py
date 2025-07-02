@@ -68,7 +68,7 @@ class GraphiteInferenceEstimator:
         Estimate Pipeline 2: GRAPHITE fusion time
         
         Components: training_step_1 + training_step_2 + visualization_step_2
-        Uses FullGrad as the fixed CAM method for final fusion.
+        Uses FullGrad as a separate CAM computation required for fusion.
         
         Two-step fusion process:
         1. Multi-level fusion (HierGAT levels → weighted combination)
@@ -77,9 +77,6 @@ class GraphiteInferenceEstimator:
         Returns:
             Dictionary with detailed timing breakdown
         """
-        # Fixed CAM method for GRAPHITE pipeline
-        cam_method = 'fullgrad'
-        
         # Core model inference (run once each)
         mil_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         hiergat_time = (self.hiergat_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
@@ -88,18 +85,22 @@ class GraphiteInferenceEstimator:
         level_generation = self.num_patches * 0.05  # Extract Level 0/1/2 maps
         multilevel_fusion = self.num_patches * 0.08  # Gaussian smoothing + combination
         
-        # Final fusion components (using FullGrad)
+        # Final fusion components
         mil_attention = self.num_patches * 0.03  # Extract MIL attention
-        cam_factor = self.cam_factors[cam_method]
-        cam_generation = mil_time * (cam_factor - 1.0)  # Gradient computation
-        final_fusion = self.num_patches * 0.1  # Combine 3 components
+        
+        # FullGrad CAM computation (completely separate computation for fusion)
+        # This is not an overhead factor but a complete separate FullGrad computation
+        fullgrad_base_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
+        fullgrad_cam_time = fullgrad_base_time * (self.cam_factors['fullgrad'] - 1.0)  # Additional gradient computation
+        
+        final_fusion = self.num_patches * 0.1  # Combine 3 components (multilevel + MIL + FullGrad)
         
         # Post-processing
         post_processing = 100.0 + (self.num_patches * 0.2)  # Rendering
         
         # Total time
         total_time = (mil_time + hiergat_time + level_generation + multilevel_fusion + 
-                      mil_attention + cam_generation + final_fusion + post_processing)
+                      mil_attention + fullgrad_cam_time + final_fusion + post_processing)
         
         return {
             'total_time_ms': total_time,
@@ -107,10 +108,11 @@ class GraphiteInferenceEstimator:
             'mil_step1_ms': mil_time,
             'hiergat_step2_ms': hiergat_time,
             'multilevel_fusion_ms': level_generation + multilevel_fusion,
-            'final_fusion_ms': mil_attention + cam_generation + final_fusion,
+            'fullgrad_cam_ms': fullgrad_cam_time,
+            'final_fusion_ms': mil_attention + final_fusion,
             'post_processing_ms': post_processing,
-            'cam_method': cam_method,
-            'description': 'GRAPHITE fusion (all training steps + two-step fusion with FullGrad)'
+            'cam_method': 'fullgrad',
+            'description': 'GRAPHITE fusion (all training steps + separate FullGrad CAM + two-step fusion)'
         }
     
     def compare_pipelines(self, cam_method: str = 'fullgrad') -> Dict[str, float]:

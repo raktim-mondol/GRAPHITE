@@ -43,6 +43,7 @@ def main():
     print("-" * 40)
     print(f"Core inference:    {graphite_result['core_inference_ms']:>6.0f} ms")
     print(f"Multi-level fusion:{graphite_result['multilevel_fusion_ms']:>6.0f} ms")
+    print(f"FullGrad CAM:      {graphite_result['fullgrad_cam_ms']:>6.0f} ms")
     print(f"Final fusion:      {graphite_result['final_fusion_ms']:>6.0f} ms")
     print(f"Post-processing:   {graphite_result['post_processing_ms']:>6.0f} ms")
     print(f"Total:             {graphite_result['total_time_ms']:>6.0f} ms")
