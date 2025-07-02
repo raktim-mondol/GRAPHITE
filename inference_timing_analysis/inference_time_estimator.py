@@ -27,10 +27,147 @@ class GraphiteInferenceEstimator:
         self.mil_flops = 875.7e9  # GFLOPs for MIL model (ResNet18 + components)
         self.hiergat_flops = 18.3e9  # GFLOPs for HierGAT
         
+        # Model parameters (millions)
+        self.resnet18_params = 11.2  # Million parameters
+        self.mil_classifier_params = 1.3  # Million parameters (projectors + classifier)
+        self.hiergat_params = 2.8  # Million parameters (graph attention layers)
+        
         # CAM method overhead factors (only GradCAM and FullGrad supported)
         self.cam_factors = {
             'gradcam': 1.2,
             'fullgrad': 2.5
+        }
+    
+    def get_pipeline1_specs(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
+        """
+        Get detailed specifications for Pipeline 1
+        
+        Args:
+            cam_method: CAM method ('gradcam' or 'fullgrad')
+            
+        Returns:
+            Dictionary with parameters, FLOPs, memory, and timing specs
+        """
+        if cam_method not in self.cam_factors:
+            raise ValueError(f"Unsupported CAM method: {cam_method}. Use 'gradcam' or 'fullgrad'")
+        
+        # Parameters (training_step_1 only)
+        total_params = self.resnet18_params + self.mil_classifier_params  # Million parameters
+        
+        # FLOPs (MIL model + CAM overhead)
+        base_flops = self.mil_flops  # Base inference FLOPs
+        cam_factor = self.cam_factors[cam_method]
+        total_flops = base_flops * cam_factor  # Total with CAM computation
+        
+        # Memory usage (FP32)
+        model_memory = total_params * 4 / 1000  # GB (4 bytes per parameter)
+        feature_memory = self.num_patches * 512 * 4 / 1e9  # GB (feature activations)
+        gradient_memory = feature_memory * (cam_factor - 1.0)  # Additional memory for gradients
+        total_memory = model_memory + feature_memory + gradient_memory
+        
+        # Timing
+        timing_result = self.estimate_pipeline1_time(cam_method)
+        
+        return {
+            'parameters_millions': total_params,
+            'flops_gflops': total_flops / 1e9,
+            'memory_gb': total_memory,
+            'inference_time_ms': timing_result['total_time_ms'],
+            'components': {
+                'models': 'training_step_1 (ResNet18 + MIL classifier)',
+                'resnet18_params_m': self.resnet18_params,
+                'mil_classifier_params_m': self.mil_classifier_params,
+                'base_flops_gflops': base_flops / 1e9,
+                'cam_overhead_factor': cam_factor
+            }
+        }
+    
+    def get_pipeline2_specs(self) -> Dict[str, float]:
+        """
+        Get detailed specifications for Pipeline 2 (GRAPHITE)
+        
+        Returns:
+            Dictionary with parameters, FLOPs, memory, and timing specs
+        """
+        # Parameters (training_step_1 + training_step_2)
+        total_params = self.resnet18_params + self.mil_classifier_params + self.hiergat_params
+        
+        # FLOPs breakdown
+        mil_flops = self.mil_flops  # training_step_1 base
+        hiergat_flops = self.hiergat_flops  # training_step_2 base
+        fullgrad_flops = mil_flops * (self.cam_factors['fullgrad'] - 1.0)  # Additional FullGrad computation
+        fusion_flops = self.num_patches * 0.2e6  # Fusion processing (0.2 MFLOPs per patch)
+        total_flops = mil_flops + hiergat_flops + fullgrad_flops + fusion_flops
+        
+        # Memory usage (FP32)
+        model_memory = total_params * 4 / 1000  # GB (4 bytes per parameter)
+        feature_memory = self.num_patches * 512 * 4 / 1e9  # GB (MIL features)
+        graph_memory = self.num_patches * 128 * 4 / 1e9  # GB (HierGAT features)
+        attention_maps_memory = 3 * (self.num_patches * 4) / 1e9  # GB (3 attention maps)
+        gradient_memory = feature_memory * 1.5  # Additional memory for FullGrad gradients
+        total_memory = model_memory + feature_memory + graph_memory + attention_maps_memory + gradient_memory
+        
+        # Timing
+        timing_result = self.estimate_pipeline2_time()
+        
+        return {
+            'parameters_millions': total_params,
+            'flops_gflops': total_flops / 1e9,
+            'memory_gb': total_memory,
+            'inference_time_ms': timing_result['total_time_ms'],
+            'components': {
+                'models': 'training_step_1 + training_step_2 (ResNet18 + MIL + HierGAT)',
+                'resnet18_params_m': self.resnet18_params,
+                'mil_classifier_params_m': self.mil_classifier_params,
+                'hiergat_params_m': self.hiergat_params,
+                'mil_flops_gflops': mil_flops / 1e9,
+                'hiergat_flops_gflops': hiergat_flops / 1e9,
+                'fullgrad_flops_gflops': fullgrad_flops / 1e9,
+                'fusion_flops_gflops': fusion_flops / 1e9,
+                'attention_maps': 3  # MIL + FullGrad + Multi-level
+            }
+        }
+    
+    def compare_pipeline_specs(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
+        """
+        Compare specifications between Pipeline 1 and GRAPHITE
+        
+        Args:
+            cam_method: CAM method for Pipeline 1 comparison
+            
+        Returns:
+            Dictionary with detailed comparison
+        """
+        p1_specs = self.get_pipeline1_specs(cam_method)
+        p2_specs = self.get_pipeline2_specs()
+        
+        return {
+            'pipeline1_vs_graphite': {
+                'parameters_ratio': p2_specs['parameters_millions'] / p1_specs['parameters_millions'],
+                'flops_ratio': p2_specs['flops_gflops'] / p1_specs['flops_gflops'],
+                'memory_ratio': p2_specs['memory_gb'] / p1_specs['memory_gb'],
+                'time_ratio': p2_specs['inference_time_ms'] / p1_specs['inference_time_ms']
+            },
+            'pipeline1': {
+                'parameters_m': p1_specs['parameters_millions'],
+                'flops_gflops': p1_specs['flops_gflops'],
+                'memory_gb': p1_specs['memory_gb'],
+                'time_ms': p1_specs['inference_time_ms'],
+                'cam_method': cam_method
+            },
+            'graphite': {
+                'parameters_m': p2_specs['parameters_millions'],
+                'flops_gflops': p2_specs['flops_gflops'],
+                'memory_gb': p2_specs['memory_gb'],
+                'time_ms': p2_specs['inference_time_ms'],
+                'cam_method': 'fullgrad'
+            },
+            'efficiency_metrics': {
+                'p1_flops_per_ms': p1_specs['flops_gflops'] / p1_specs['inference_time_ms'],
+                'graphite_flops_per_ms': p2_specs['flops_gflops'] / p2_specs['inference_time_ms'],
+                'p1_params_per_gflop': p1_specs['parameters_millions'] / p1_specs['flops_gflops'],
+                'graphite_params_per_gflop': p2_specs['parameters_millions'] / p2_specs['flops_gflops']
+            }
         }
     
     def estimate_pipeline1_time(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
@@ -138,7 +275,7 @@ class GraphiteInferenceEstimator:
             Dictionary with comparison results
         """
         p1_results = self.estimate_pipeline1_time(cam_method)
-        p2_results = self.estimate_pipeline2_time()  # Always uses FullGrad
+        p2_results = self.estimate_pipeline2_time()
         
         complexity_ratio = p2_results['total_time_ms'] / p1_results['total_time_ms']
         
@@ -166,17 +303,22 @@ if __name__ == "__main__":
     print("GRAPHITE Inference Time Estimates (5040×5040, V100, FP32)")
     print("=" * 60)
     
+    # Compare pipeline specifications
+    specs_comparison = estimator.compare_pipeline_specs('fullgrad')
+    print(f"\nPipeline Specifications Comparison:")
+    print(f"  Pipeline 1: {specs_comparison['pipeline1']['parameters_m']:.1f}M params, {specs_comparison['pipeline1']['flops_gflops']:.0f} GFLOPs, {specs_comparison['pipeline1']['memory_gb']:.2f} GB")
+    print(f"  GRAPHITE:   {specs_comparison['graphite']['parameters_m']:.1f}M params, {specs_comparison['graphite']['flops_gflops']:.0f} GFLOPs, {specs_comparison['graphite']['memory_gb']:.2f} GB")
+    
+    ratios = specs_comparison['pipeline1_vs_graphite']
+    print(f"\nComplexity Ratios (GRAPHITE vs Pipeline 1):")
+    print(f"  Parameters: {ratios['parameters_ratio']:.1f}x")
+    print(f"  FLOPs:      {ratios['flops_ratio']:.1f}x") 
+    print(f"  Memory:     {ratios['memory_ratio']:.1f}x")
+    print(f"  Time:       {ratios['time_ratio']:.1f}x")
+    
     # Compare pipelines with FullGrad for Pipeline 1
     comparison = estimator.compare_pipelines('fullgrad')
-    print(f"\nPipeline Comparison (FullGrad vs GRAPHITE):")
+    print(f"\nTiming Comparison:")
     print(f"  Pipeline 1 (FullGrad):    {comparison['pipeline1_ms']:.0f} ms")
     print(f"  GRAPHITE (FullGrad):      {comparison['pipeline2_ms']:.0f} ms")
-    print(f"  Complexity ratio:         {comparison['complexity_ratio']:.1f}x")
-    
-    # Detailed breakdown for GRAPHITE
-    graphite_details = estimator.estimate_pipeline2_time()
-    print(f"\nGRAPHITE Breakdown:")
-    print(f"  Core inference:           {graphite_details['mil_inference_ms']:.0f} ms")
-    print(f"  Multi-level fusion:       {graphite_details['multilevel_fusion_map_ms']:.0f} ms")
-    print(f"  Final fusion:             {graphite_details['final_fusion_ms']:.0f} ms")
-    print(f"  Post-processing:          {graphite_details['post_processing_ms']:.0f} ms") 
+    print(f"  Complexity ratio:         {comparison['complexity_ratio']:.1f}x") 
