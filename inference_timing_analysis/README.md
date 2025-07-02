@@ -27,10 +27,11 @@ print(f"Pipeline 2: {comparison['pipeline2_ms']:.0f}ms")
 
 | Pipeline | Time | Use Case |
 |----------|------|----------|
-| **Pipeline 1** (GradCAM) | **86 ms** | Real-time processing |
+| **Pipeline 1** (GradCAM) | **89-186 ms** | Real-time processing |
 | **Pipeline 2** (Fusion) | **510 ms** | Research analysis |
 
-Pipeline 2 is **6x more complex** but provides comprehensive multi-level analysis.
+Pipeline 2 is **3-6x more complex** but provides comprehensive multi-level analysis.
+**CAM Methods**: GradCAM (fast), FullGrad (better quality)
 
 ## Run Test
 

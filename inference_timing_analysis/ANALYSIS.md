@@ -32,10 +32,8 @@ Simple analysis for GRAPHITE visualization pipeline performance.
 
 | CAM Method | Time | Overhead | Use Case |
 |------------|------|----------|----------|
-| GradCAM | 74 ms | 1.2x | Fast processing |
-| FullGrad | 86 ms | 2.5x | Balanced quality/speed |
-| HiResCAM | 79 ms | 1.8x | High resolution focus |
-| ScoreCAM | 465 ms | 15.0x | Best quality |
+| GradCAM | 89 ms | 1.2x | Fast processing, real-time |
+| FullGrad | 186 ms | 2.5x | Better quality, moderate speed |
 
 ### Pipeline 2 Breakdown (FullGrad)
 

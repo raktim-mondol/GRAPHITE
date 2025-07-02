@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Simple test script for GRAPHITE inference time estimation.
-Tests both pipelines with different CAM methods.
+Tests both pipelines with GradCAM and FullGrad methods only.
 """
 
 from inference_time_estimator import create_estimator
@@ -15,8 +15,8 @@ def main():
     
     estimator = create_estimator()
     
-    # Test different CAM methods
-    cam_methods = ['gradcam', 'fullgrad', 'hirescam', 'scorecam']
+    # Test only GradCAM and FullGrad methods
+    cam_methods = ['gradcam', 'fullgrad']
     
     print("CAM Method Comparison (Pipeline 1):")
     print("-" * 40)
@@ -47,10 +47,21 @@ def main():
     print(f"Total:             {p2_result['total_time_ms']:>6.0f} ms")
     
     print()
+    print("Pipeline Comparison (GradCAM):")
+    print("-" * 40)
+    
+    # Additional comparison with GradCAM
+    comparison_gradcam = estimator.compare_pipelines('gradcam')
+    print(f"Pipeline 1: {comparison_gradcam['pipeline1_ms']:>6.0f} ms (GradCAM)")
+    print(f"Pipeline 2: {comparison_gradcam['pipeline2_ms']:>6.0f} ms (Fusion)")
+    print(f"Ratio:      {comparison_gradcam['complexity_ratio']:>6.1f}x more complex")
+    
+    print()
     print("Recommendations:")
     print("- Use Pipeline 1 for real-time processing (<100ms)")
     print("- Use Pipeline 2 for comprehensive research analysis")
-    print("- FullGrad provides good balance of quality and speed")
+    print("- GradCAM: Fastest processing, good for real-time")
+    print("- FullGrad: Better quality, moderate speed")
 
 
 if __name__ == "__main__":

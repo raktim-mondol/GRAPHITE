@@ -27,12 +27,10 @@ class GraphiteInferenceEstimator:
         self.mil_flops = 875.7e9  # GFLOPs for MIL model (ResNet18 + components)
         self.hiergat_flops = 18.3e9  # GFLOPs for HierGAT
         
-        # CAM method overhead factors
+        # CAM method overhead factors (only GradCAM and FullGrad supported)
         self.cam_factors = {
             'gradcam': 1.2,
-            'fullgrad': 2.5,
-            'hirescam': 1.8,
-            'scorecam': 15.0
+            'fullgrad': 2.5
         }
     
     def estimate_pipeline1_time(self, cam_method: str = 'fullgrad') -> Dict[str, float]:
@@ -42,16 +40,19 @@ class GraphiteInferenceEstimator:
         Components: training_step_1 + visualization_step_1
         
         Args:
-            cam_method: CAM method ('gradcam', 'fullgrad', 'hirescam', 'scorecam')
+            cam_method: CAM method ('gradcam' or 'fullgrad')
             
         Returns:
             Dictionary with timing results
         """
+        if cam_method not in self.cam_factors:
+            raise ValueError(f"Unsupported CAM method: {cam_method}. Use 'gradcam' or 'fullgrad'")
+            
         # Base MIL inference time
         base_time_ms = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         
         # Apply CAM overhead
-        cam_factor = self.cam_factors.get(cam_method, 2.5)
+        cam_factor = self.cam_factors[cam_method]
         total_time_ms = base_time_ms * cam_factor
         
         return {
@@ -72,11 +73,14 @@ class GraphiteInferenceEstimator:
         2. Final fusion (multilevel + MIL + CAM → final heatmap)
         
         Args:
-            cam_method: CAM method for final fusion
+            cam_method: CAM method for final fusion ('gradcam' or 'fullgrad')
             
         Returns:
             Dictionary with detailed timing breakdown
         """
+        if cam_method not in self.cam_factors:
+            raise ValueError(f"Unsupported CAM method: {cam_method}. Use 'gradcam' or 'fullgrad'")
+            
         # Core model inference (run once each)
         mil_time = (self.mil_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
         hiergat_time = (self.hiergat_flops / (self.gpu_tflops * 1e12 * self.efficiency)) * 1000
@@ -87,7 +91,7 @@ class GraphiteInferenceEstimator:
         
         # Final fusion components
         mil_attention = self.num_patches * 0.03  # Extract MIL attention
-        cam_factor = self.cam_factors.get(cam_method, 2.5)
+        cam_factor = self.cam_factors[cam_method]
         cam_generation = mil_time * (cam_factor - 1.0)  # Gradient computation
         final_fusion = self.num_patches * 0.1  # Combine 3 components
         
@@ -115,7 +119,7 @@ class GraphiteInferenceEstimator:
         Compare both pipelines side by side
         
         Args:
-            cam_method: CAM method to use for comparison
+            cam_method: CAM method to use for comparison ('gradcam' or 'fullgrad')
             
         Returns:
             Dictionary with comparison results
