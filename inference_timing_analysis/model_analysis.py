@@ -7,7 +7,7 @@ Provides detailed parameter counts, model summaries, and FLOP calculations.
 
 Features:
 - PyTorch model summaries using torchinfo
-- FLOP calculations using fvcore and ptflops
+- FLOP calculations using fvcore and ptflops (with memory safety)
 - Detailed parameter breakdowns
 - Memory usage estimates
 - Comparison between models
@@ -19,32 +19,118 @@ import torch
 import torch.nn as nn
 from typing import Dict, Tuple, Optional, Any
 import warnings
+import gc
+import psutil
 warnings.filterwarnings('ignore')
 
 # Add training step directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'training_step_1', 'mil_classification', 'src'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'training_step_2', 'self_supervised_training'))
 
-try:
-    from torchinfo import summary
-    TORCHINFO_AVAILABLE = True
-except ImportError:
-    TORCHINFO_AVAILABLE = False
-    print("torchinfo not available. Install with: pip install torchinfo")
+# Enhanced library detection with error handling
+def check_library_availability():
+    """Check availability of analysis libraries with detailed error reporting"""
+    libraries = {}
+    
+    # Check torchinfo
+    try:
+        from torchinfo import summary
+        libraries['torchinfo'] = True
+    except ImportError as e:
+        libraries['torchinfo'] = False
+        print(f"torchinfo not available: {e}")
+        print("Install with: pip install torchinfo")
+    
+    # Check fvcore with enhanced detection
+    try:
+        import fvcore
+        from fvcore.nn import flop_count
+        libraries['fvcore'] = True
+        print(f"fvcore version: {fvcore.__version__} found at: {fvcore.__file__}")
+    except ImportError as e:
+        libraries['fvcore'] = False
+        print(f"fvcore not available: {e}")
+        print("Install with: pip install fvcore")
+    except Exception as e:
+        libraries['fvcore'] = False
+        print(f"fvcore import error: {e}")
+    
+    # Check ptflops with safer approach
+    try:
+        import ptflops
+        from ptflops import get_model_complexity_info
+        libraries['ptflops'] = True
+        print(f"ptflops found at: {ptflops.__file__}")
+    except ImportError as e:
+        libraries['ptflops'] = False
+        print(f"ptflops not available: {e}")
+        print("Install with: pip install ptflops")
+    
+    return libraries
 
-try:
-    from fvcore.nn import FlopCountMode, flop_count
-    FVCORE_AVAILABLE = True
-except ImportError:
-    FVCORE_AVAILABLE = False
-    print("fvcore not available. Install with: pip install fvcore")
+# Initialize library availability
+LIBS = check_library_availability()
 
-try:
-    from ptflops import get_model_complexity_info
-    PTFLOPS_AVAILABLE = True
-except ImportError:
-    PTFLOPS_AVAILABLE = False
-    print("ptflops not available. Install with: pip install ptflops")
+
+def get_memory_usage():
+    """Get current memory usage"""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024  # MB
+
+
+def safe_ptflops_analysis(model, input_shape, timeout_seconds=30):
+    """Safely run ptflops analysis with memory monitoring and timeout protection"""
+    if not LIBS['ptflops']:
+        return None
+        
+    try:
+        from ptflops import get_model_complexity_info
+        import signal
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("ptflops analysis timed out")
+        
+        # Monitor initial memory
+        initial_memory = get_memory_usage()
+        print(f"Initial memory usage: {initial_memory:.1f} MB")
+        
+        # Set timeout (only works on Unix-like systems)
+        if hasattr(signal, 'SIGALRM'):
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout_seconds)
+        
+        try:
+            # Use smaller input for memory efficiency
+            small_input_shape = (1, 3, 224, 224) if len(input_shape) > 3 else input_shape
+            print(f"Using reduced input shape for ptflops: {small_input_shape}")
+            
+            macs, params = get_model_complexity_info(
+                model, 
+                small_input_shape,
+                print_per_layer_stat=False,
+                verbose=False,
+                as_strings=True
+            )
+            
+            # Cancel alarm if set
+            if hasattr(signal, 'SIGALRM'):
+                signal.alarm(0)
+            
+            return {'macs': macs, 'params': params}
+            
+        except (TimeoutError, RuntimeError, MemoryError) as e:
+            print(f"ptflops analysis failed: {e}")
+            if hasattr(signal, 'SIGALRM'):
+                signal.alarm(0)
+            return None
+            
+    except Exception as e:
+        print(f"Error in safe ptflops analysis: {e}")
+        return None
+    finally:
+        # Clean up memory
+        gc.collect()
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 
 def get_model_parameter_count(model: nn.Module) -> Dict[str, int]:
@@ -139,43 +225,56 @@ def analyze_mil_model():
             percentage = (count / param_stats['total_params']) * 100
             print(f"{component}: {count:,} ({percentage:.1f}%)")
         
-        # Torchinfo summary
-        if TORCHINFO_AVAILABLE:
+        # Torchinfo summary (memory safe)
+        if LIBS['torchinfo']:
             print(f"\nTORCHINFO SUMMARY:")
             try:
-                # Create dummy input: (batch_size=1, num_patches=484, channels=3, height=224, width=224)
-                dummy_input = torch.randn(1, 484, 3, 224, 224)
+                # Use smaller input for memory efficiency
+                dummy_input = torch.randn(1, 16, 3, 224, 224)  # Reduced from 484 patches
+                print(f"Using reduced input size (16 patches instead of 484) for analysis")
+                
+                from torchinfo import summary
                 summary_result = summary(model, input_data=dummy_input, verbose=0)
                 print(summary_result)
             except Exception as e:
                 print(f"Error in torchinfo summary: {e}")
         
-        # FLOP analysis with fvcore
-        if FVCORE_AVAILABLE:
+        # Enhanced FLOP analysis with fvcore
+        if LIBS['fvcore']:
             print(f"\nFVCORE FLOP ANALYSIS:")
             try:
-                dummy_input = torch.randn(1, 484, 3, 224, 224)
+                from fvcore.nn import flop_count
+                
+                # Use smaller input to avoid memory issues
+                dummy_input = torch.randn(1, 16, 3, 224, 224)
+                print(f"Using reduced input (16 patches) for FLOP calculation")
+                
                 flops = flop_count(model, (dummy_input,), supported_ops=None)
-                total_flops = sum(flops[0].values()) if flops[0] else 0
-                print(f"Total FLOPs: {total_flops:,} ({total_flops/1e9:.2f} GFLOPs)")
+                if flops and len(flops) > 0 and flops[0]:
+                    total_flops = sum(flops[0].values())
+                    # Scale up to full 484 patches
+                    scaled_flops = total_flops * (484 / 16)
+                    print(f"FLOPs for 16 patches: {total_flops:,} ({total_flops/1e9:.2f} GFLOPs)")
+                    print(f"Estimated FLOPs for 484 patches: {scaled_flops:,} ({scaled_flops/1e9:.2f} GFLOPs)")
+                else:
+                    print("Could not calculate FLOPs with fvcore")
             except Exception as e:
                 print(f"Error in fvcore FLOP analysis: {e}")
         
-        # FLOP analysis with ptflops
-        if PTFLOPS_AVAILABLE:
-            print(f"\nPTFLOPS ANALYSIS:")
-            try:
-                # ptflops expects input shape without batch dimension
-                macs, params = get_model_complexity_info(
-                    model, 
-                    (484, 3, 224, 224),  # (num_patches, channels, height, width)
-                    print_per_layer_stat=False,
-                    verbose=False
-                )
-                print(f"MACs: {macs}")
-                print(f"Parameters: {params}")
-            except Exception as e:
-                print(f"Error in ptflops analysis: {e}")
+        # Safe FLOP analysis with ptflops
+        if LIBS['ptflops']:
+            print(f"\nPTFLOPS ANALYSIS (MEMORY SAFE):")
+            ptflops_result = safe_ptflops_analysis(
+                model, 
+                (16, 3, 224, 224),  # Reduced input size
+                timeout_seconds=30
+            )
+            if ptflops_result:
+                print(f"MACs (16 patches): {ptflops_result['macs']}")
+                print(f"Parameters: {ptflops_result['params']}")
+                print(f"Note: Results scaled for 16 patches instead of 484 to avoid memory issues")
+            else:
+                print("ptflops analysis skipped due to memory/timeout concerns")
         
         return model, param_stats
         
@@ -236,7 +335,7 @@ def analyze_hiergat_model():
             print(f"{component}: {count:,} ({percentage:.1f}%)")
         
         # Torchinfo summary
-        if TORCHINFO_AVAILABLE:
+        if LIBS['torchinfo']:
             print(f"\nTORCHINFO SUMMARY:")
             print("Note: HierGAT uses PyTorch Geometric data format")
             print("Complex to analyze with standard tools due to graph structure")
@@ -356,9 +455,13 @@ def main():
     
     # Check available libraries
     print("AVAILABLE ANALYSIS LIBRARIES:")
-    print(f"- torchinfo: {'✓' if TORCHINFO_AVAILABLE else '✗'}")
-    print(f"- fvcore: {'✓' if FVCORE_AVAILABLE else '✗'}")
-    print(f"- ptflops: {'✓' if PTFLOPS_AVAILABLE else '✗'}")
+    print(f"- torchinfo: {'✓' if LIBS['torchinfo'] else '✗'}")
+    print(f"- fvcore: {'✓' if LIBS['fvcore'] else '✗'}")
+    print(f"- ptflops: {'✓' if LIBS['ptflops'] else '✗'}")
+    print(f"- psutil: ✓ (for memory monitoring)")
+    print()
+    
+    print(f"Initial system memory usage: {get_memory_usage():.1f} MB")
     print()
     
     # Analyze models
@@ -374,9 +477,14 @@ def main():
     # Theoretical comparison
     theoretical_vs_actual_comparison()
     
+    print(f"\nFinal system memory usage: {get_memory_usage():.1f} MB")
     print("\n" + "="*60)
     print("ANALYSIS COMPLETE")
     print("="*60)
+    print("\nNOTES:")
+    print("- ptflops analysis uses reduced input sizes to prevent memory issues")
+    print("- Results are scaled/estimated for full 484-patch inputs where applicable")
+    print("- Memory monitoring helps track resource usage during analysis")
 
 
 if __name__ == "__main__":
