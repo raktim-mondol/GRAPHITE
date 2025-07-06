@@ -1,3 +1,10 @@
+**General Settings**  
+- **Image Size:** 5040 x 5040  
+- **Patch Size:** 224 x 224  
+- **Total Patches:** 484  
+- **GPU:** V100 (FP32)  
+- **Inference:** Per Core  
+
 | Model Name                     | Total Time (s) | FLOPs (GFLOPs) | Parameters (M) | Model Size (MB) |
 |--------------------------------|----------------|----------------|----------------|-----------------|
 | GRADCAM                        | 14.00          | 1761.76        | 11.18           | 42.64           |
