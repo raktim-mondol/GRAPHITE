@@ -22,4 +22,4 @@
 | GRAPHITE (Multilevel Fusion)   | 0.72           | 1766.92*         | 11.41           | 43.53           |
 | GRAPHITE (Final Fusion)        | 360.38         | 5295.48*         | 12.20           | 46.54           |
 
-\* **Note:** FLOPs represent the base model’s computational cost and **do not include the complete computational overhead** of the interpretability methods.
+\* **Note:** FLOPs represent the base model’s computational cost and do not reflect the complete computational cost.
