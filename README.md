@@ -29,7 +29,7 @@ GRAPHITE provides an end-to-end solution for analyzing histopathology images thr
 
 ## 🏗️ Pipeline Architecture
 
-![GRAPHITE Pipeline Architecture](pipeline_v2.png)
+![GRAPHITE Pipeline Architecture](pipeline_v3.png)
 
 ## 📋 Table of Contents
 
@@ -329,4 +329,5 @@ If you use GRAPHITE in your research, please cite:
 ---
 
 **⭐ Star this repository if you find it helpful!** 
+
 
